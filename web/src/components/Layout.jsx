@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, TrendingDown, FileText, LogOut } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, TrendingDown, FileText, LogOut, Settings, Brain } from 'lucide-react';
 
 const SidebarLink = ({ to, icon: Icon, label }) => (
   <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} to={to}>
@@ -23,6 +23,8 @@ const Layout = ({ onLogout, children, user }) => {
         <SidebarLink to="/sales" icon={TrendingUp} label="Ventes" />
         <SidebarLink to="/expenses" icon={TrendingDown} label="Dépenses" />
         <SidebarLink to="/invoices" icon={FileText} label="Factures" />
+        <SidebarLink to="/settings" icon={Settings} label="Paramètres" />
+        <SidebarLink to="/ai" icon={Brain} label="Conseils IA" />
         <button className="nav-link" style={{ border: 'none', background: 'transparent' }} onClick={logout}>
           <LogOut size={18} />
           <span>Déconnexion</span>

@@ -10,6 +10,12 @@ const buildErrors = (req) => {
   return null;
 };
 
+const generateInvoiceNumber = () => {
+  const now = new Date();
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `INV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}-${rand}`;
+};
+
 const createTransaction = async (type, req, res) => {
   const errors = buildErrors(req);
   if (errors) {
@@ -22,7 +28,35 @@ const createTransaction = async (type, req, res) => {
       type,
       createdBy: req.user._id,
     });
-    return res.status(201).json(transaction);
+
+    let invoiceCreated = null;
+    if (type === 'sale') {
+      try {
+        const saleAmount = req.body.amount;
+        invoiceCreated = await Invoice.create({
+          number: generateInvoiceNumber(),
+          customerName: req.body.counterparty || 'Client',
+          amount: saleAmount,
+          items: [
+            {
+              description: req.body.description || 'Vente',
+              quantity: 1,
+              unitPrice: saleAmount,
+              lineTotal: saleAmount,
+            },
+          ],
+          dueDate: req.body.invoiceDueDate ? new Date(req.body.invoiceDueDate) : new Date(Date.now() + 7 * 86400000),
+          status: 'paid',
+          createdBy: req.user._id,
+        });
+      } catch (err) {
+        // rollback sale if invoice fails to keep consistency
+        await Transaction.findByIdAndDelete(transaction._id);
+        throw err;
+      }
+    }
+
+    return res.status(201).json({ transaction, invoice: invoiceCreated });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Erreur lors de la création' });
@@ -91,8 +125,19 @@ exports.createInvoice = async (req, res) => {
     return res.status(400).json({ errors });
   }
   try {
+    const items = (req.body.items || []).map((it) => ({
+      description: it.description,
+      quantity: Number(it.quantity) || 1,
+      unitPrice: Number(it.unitPrice) || 0,
+      lineTotal: (Number(it.quantity) || 1) * (Number(it.unitPrice) || 0),
+    }));
+    const computedAmount =
+      items.length > 0 ? items.reduce((sum, it) => sum + it.lineTotal, 0) : Number(req.body.amount) || 0;
+
     const invoice = await Invoice.create({
       ...req.body,
+      items,
+      amount: computedAmount,
       createdBy: req.user._id,
     });
     return res.status(201).json(invoice);
@@ -130,9 +175,21 @@ exports.updateInvoiceStatus = async (req, res) => {
 exports.updateInvoice = async (req, res) => {
   const { id } = req.params;
   try {
+    let items;
+    let amountUpdate;
+    if (req.body.items) {
+      items = req.body.items.map((it) => ({
+        description: it.description,
+        quantity: Number(it.quantity) || 1,
+        unitPrice: Number(it.unitPrice) || 0,
+        lineTotal: (Number(it.quantity) || 1) * (Number(it.unitPrice) || 0),
+      }));
+      amountUpdate = items.reduce((sum, it) => sum + it.lineTotal, 0);
+    }
+
     const updated = await Invoice.findOneAndUpdate(
       { _id: id, createdBy: req.user._id },
-      { ...req.body },
+      { ...req.body, ...(items ? { items } : {}), ...(amountUpdate !== undefined ? { amount: amountUpdate } : {}) },
       { new: true }
     );
     if (!updated) {

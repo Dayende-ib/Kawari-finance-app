@@ -1,14 +1,14 @@
 :root {
-  color-scheme: dark;
-  --bg: #050915;
-  --panel: #0b1224;
-  --card: #0f172a;
-  --muted: #94a3b8;
-  --text: #e2e8f0;
+  color-scheme: light;
+  --bg: #f3f6fb;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --muted: #64748b;
+  --text: #0f172a;
   --accent: #fbbf24;
   --accent-2: #22d3ee;
   --accent-3: #fb7185;
-  --border: #1f2937;
+  --border: #e2e8f0;
   font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -18,9 +18,9 @@
 
 body {
   margin: 0;
-  background: radial-gradient(circle at 15% 20%, rgba(251, 191, 36, 0.12), transparent 30%),
-    radial-gradient(circle at 80% 10%, rgba(34, 211, 238, 0.12), transparent 25%),
-    radial-gradient(circle at 50% 80%, rgba(251, 113, 133, 0.12), transparent 30%),
+  background: radial-gradient(circle at 15% 20%, rgba(251, 191, 36, 0.18), transparent 32%),
+    radial-gradient(circle at 80% 10%, rgba(34, 211, 238, 0.18), transparent 28%),
+    radial-gradient(circle at 50% 80%, rgba(251, 113, 133, 0.12), transparent 32%),
     var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -39,7 +39,7 @@ a {
 
 .sidebar {
   background: var(--panel);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #d9e3f0;
   padding: 24px;
 }
 
@@ -55,15 +55,15 @@ a {
   gap: 10px;
   padding: 12px 14px;
   border-radius: 12px;
-  color: var(--muted);
+  color: #1e293b;
   margin-bottom: 8px;
   transition: background 0.2s, color 0.2s;
 }
 
 .nav-link.active,
 .nav-link:hover {
-  background: rgba(251, 191, 36, 0.1);
-  color: var(--accent);
+  background: rgba(34, 211, 238, 0.12);
+  color: #0ea5e9;
 }
 
 .content {
@@ -88,6 +88,7 @@ a {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 16px;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
 }
 
 .card h3 {
@@ -95,7 +96,7 @@ a {
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
 }
 

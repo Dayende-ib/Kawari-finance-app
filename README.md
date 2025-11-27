@@ -27,13 +27,19 @@ npm run dev             # démarre sur http://localhost:4000
 
 - `POST /api/auth/register` – créer un compte (name, email, password).
 - `POST /api/auth/login` – obtenir un token JWT.
+- `PUT /api/auth/profile` – mettre à jour nom/entreprise/logo/signature pour les factures.
 - `GET /api/finance/dashboard` – agrégats ventes/dépenses et statut factures.
 - `POST /api/finance/sales` – créer une vente (amount, category, description, counterparty, date).
 - `POST /api/finance/expenses` – créer une dépense (amount, category, description, counterparty, date).
 - `POST /api/finance/invoices` – créer une facture (number, customerName, amount, dueDate, status).
 - `GET /api/finance/invoices` – lister les factures de l’utilisateur.
+- Les factures acceptent aussi `items` (description, quantity, unitPrice) pour générer plusieurs lignes.
 
 Toutes les routes `api/finance` nécessitent le header `Authorization: Bearer <token>` obtenu à la connexion.
+
+## Conseils IA
+
+Une page dédiée "Conseils IA" et un bloc sur le dashboard web affichent des recommandations calculées à partir de vos ventes, dépenses et factures (retards, cashflow, ratio charges/ventes). Aucun appel externe requis : les conseils sont générés côté front à partir des données de l'API.
 
 ## Lancer l’app mobile (Expo)
 

@@ -19,6 +19,8 @@ api.interceptors.request.use((config) => {
 
 export const login = (payload) => api.post('/api/auth/login', payload);
 export const register = (payload) => api.post('/api/auth/register', payload);
+export const me = () => api.get('/api/auth/me');
+export const updateProfile = (payload) => api.put('/api/auth/profile', payload);
 export const fetchDashboard = () => api.get('/api/finance/dashboard');
 export const createSale = (payload) => api.post('/api/finance/sales', payload);
 export const createExpense = (payload) => api.post('/api/finance/expenses', payload);

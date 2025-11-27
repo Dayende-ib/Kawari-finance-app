@@ -4,6 +4,16 @@ const User = require('../models/User');
 
 const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+const userPayload = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  company: user.company,
+  address: user.address,
+  logoUrl: user.logoUrl,
+  signatureUrl: user.signatureUrl,
+});
+
 exports.register = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -20,7 +30,7 @@ exports.register = async (req, res) => {
     const user = await User.create({ name, email, password, company });
     return res.status(201).json({
       token: signToken(user._id),
-      user: { id: user._id, name: user.name, email: user.email, company: user.company },
+      user: userPayload(user),
     });
   } catch (err) {
     console.error(err);
@@ -48,7 +58,7 @@ exports.login = async (req, res) => {
 
     return res.json({
       token: signToken(user._id),
-      user: { id: user._id, name: user.name, email: user.email, company: user.company },
+      user: userPayload(user),
     });
   } catch (err) {
     console.error(err);
@@ -60,5 +70,19 @@ exports.me = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Non autorisé' });
   }
-  return res.json({ user: req.user });
+  return res.json({ user: userPayload(req.user) });
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const updates = ['name', 'company', 'address', 'logoUrl', 'signatureUrl'].reduce((acc, key) => {
+      if (req.body[key] !== undefined) acc[key] = req.body[key];
+      return acc;
+    }, {});
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true }).select('-password');
+    return res.json({ user: userPayload(user) });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Impossible de mettre à jour le profil' });
+  }
 };

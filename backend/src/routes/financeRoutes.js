@@ -44,9 +44,10 @@ router.post(
   [
     body('number').notEmpty().withMessage('Numéro requis'),
     body('customerName').notEmpty().withMessage('Nom du client requis'),
-    body('amount').isNumeric(),
+    body('amount').optional().isNumeric(),
     body('dueDate').isISO8601(),
     body('status').optional().isIn(['draft', 'sent', 'paid', 'overdue']),
+    body('items').optional().isArray(),
   ],
   createInvoice
 );
