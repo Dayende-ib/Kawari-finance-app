@@ -1,0 +1,93 @@
+
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  transactions Transaction[]
+  invoices     Invoice[]
+  notifications Notification[]
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String?
+  createdAt DateTime @default(now())
+
+  transactions Transaction[]
+  invoices     Invoice[]
+}
+
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  customerId    Int?
+  type          String
+  amount        Float
+  currency      String
+  date          DateTime
+  description   String?
+  paymentMethod String?
+  category      String?
+  createdAt     DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+}
+
+model Invoice {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  customerId Int
+  number     String
+  total      Float
+  issuedAt   DateTime
+  status     String
+  createdAt  DateTime @default(now())
+
+  items    InvoiceItem[]
+  user     User     @relation(fields: [userId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model InvoiceItem {
+  id        Int     @id @default(autoincrement())
+  invoiceId Int
+  label     String
+  quantity  Int
+  unitPrice Float
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  type      String   // ex: "sale", "invoice", "system"
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+
