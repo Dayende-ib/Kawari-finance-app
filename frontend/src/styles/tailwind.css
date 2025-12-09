@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #f8fafc;
+  background: #0b1220;
+}
+
+body {
+  @apply bg-bg text-slate-50 font-sans;
+}
+
+input, select, textarea {
+  @apply outline-none;
+}

@@ -1,138 +1,114 @@
-# Kawari Finance – Backend
+# Kawari Finance – Backend & Frontend
 
-API Node.js/Express pour un assistant financier destiné aux petites entreprises du Burkina Faso. Elle couvre l’authentification, les clients, les ventes/dépenses, les factures, les notifications et un flux Mobile Money fictif, avec stockage Prisma/SQLite.
+Suite complète (API + UI) pour un assistant financier destiné aux petites entreprises du Burkina Faso. Backend Node.js/Express/Prisma (SQLite) et frontend React/Vite/TypeScript/Tailwind.
 
-## Fonctionnalités
-- Authentification JWT (inscription/connexion), mots de passe hachés (bcrypt).
+## Fonctionnalités principales
+- Auth JWT (inscription/connexion), mots de passe hachés (bcrypt).
 - Gestion des clients (CRUD).
-- Transactions : ventes et dépenses, stats globales et mensuelles.
-- Facturation (CRUD) avec lignes d’article.
+- Transactions : ventes et dépenses, statistiques globales et mensuelles.
+- Facturation (CRUD) avec lignes.
 - Notifications (création, lecture, suppression, compteur non lus).
-- Simulation de paiements Mobile Money.
-- Seed Prisma idempotent (réinitialise les tables avant d’insérer les données de démo).
+- Simulation Mobile Money.
+- Seed Prisma idempotent (réinitialise les tables avant les données de démo).
 
 ## Stack
-- Node.js + Express 5
-- Prisma 5 + SQLite (`backend/prisma/dev.db`)
-- JWT + bcryptjs
-- CORS, dotenv, nodemon (dev)
+- Backend : Node.js + Express 5, Prisma 5 + SQLite.
+- Frontend : React 18 + Vite + TypeScript, Tailwind CSS, React Router, TanStack Query, Axios.
 
 ## Prérequis
 - Node.js ≥ 18
 - npm
 
-## Installation
+## Installation backend
 ```bash
 cd backend
 npm install
 ```
 
-## Environnement (.env)
-- Fichier attendu : `backend/.env` (un exemple est fourni dans `env.example` à la racine).
+## Environnement backend
+- Fichier attendu : `backend/.env` (exemple dans `env.example` à la racine).
 - Variables minimales :
 ```
 PORT=5000
 DATABASE_URL="file:./prisma/dev.db"
 JWT_SECRET=change_me
 ```
-- Windows : `copy env.example backend/.env` puis ajuster les valeurs.
-- Linux/macOS : `cp env.example backend/.env` puis ajuster.
+- Copier l’exemple :  
+  - Windows : `copy env.example backend/.env`  
+  - Linux/macOS : `cp env.example backend/.env`
 
-## Base de données
-Synchroniser le schéma et remplir la démo :
+## Base de données (Prisma)
 ```bash
 npx prisma migrate dev --name init   # ou: npx prisma db push
-npx prisma db seed                   # réinitialise les tables, insère les données de démo
+npx prisma db seed                   # réinitialise et insère les données de démo
 ```
 ⚠️ Le seed supprime les données existantes (deleteMany sur toutes les tables).
 
-## Lancement
+## Lancement backend
 ```bash
-node server.js          # lancement simple
-npx nodemon server.js   # rechargement auto en dev
+node server.js          # simple
+npx nodemon server.js   # avec reload
 ```
-API par défaut sur `http://localhost:5000`.
+API par défaut : `http://localhost:5000`.
 
 ## Compte de démo
 - Email : `admin@kawari.com`
 - Mot de passe : `password123`
 
+## Installation frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Frontend par défaut : `http://localhost:5173`.
+- Si le backend n’est pas sur `localhost:5000`, ajuster `frontend/src/lib/api.ts` (`baseURL`).
+
 ## Structure
 ```
 backend/
-├─ server.js              # point d’entrée Express
+├─ server.js              # Point d’entrée Express
 ├─ prisma/
-│  ├─ schema.prisma       # modèle de données
-│  └─ seed.js             # seed idempotent
+│  ├─ schema.prisma       # Modèle de données
+│  └─ seed.js             # Seed idempotent
 └─ src/
-   ├─ controllers/        # logique métier
+   ├─ controllers/        # Logique métier
    ├─ middlewares/        # authMiddleware (JWT)
-   ├─ routes/             # endpoints
+   ├─ routes/             # Endpoints
    └─ utils/              # hash, jwt
+
+frontend/
+├─ vite.config.ts
+├─ tailwind.config.cjs
+├─ src/
+│  ├─ main.tsx
+│  ├─ App.tsx
+│  ├─ lib/api.ts          # Axios + baseURL
+│  ├─ context/AuthContext.tsx
+│  ├─ components/         # Button, Input, Card, Table, StatTile, Toast, etc.
+│  └─ pages/              # Login, Dashboard, Customers, Transactions, Invoices, Notifications, MobileMoney
+└─ styles/tailwind.css
 ```
 
-## Authentification
-Toutes les routes sauf `/api/auth/*` requièrent :
+## Authentification (API)
+Header requis pour les routes protégées :
 ```
 Authorization: Bearer <token>
 ```
 Token obtenu via `/api/auth/login` ou `/api/auth/register`.
 
-## Endpoints
+## Endpoints backend (rappel)
+- Auth : `POST /api/auth/register`, `POST /api/auth/login`
+- Clients : CRUD `/api/customers`
+- Transactions : `/api/transactions/sales` et `/api/transactions/expenses` (+ stats `/api/stats`, `/api/transactions/monthly`)
+- Factures : CRUD `/api/invoices`
+- Notifications : `/api/notifications`, `/api/notifications/unread`, `/api/notifications/unread/count`, `PATCH /api/notifications/:id/read`, `DELETE /api/notifications/:id`
+- Mobile Money : `POST /api/mobile-money/mock`, `GET /api/mobile-money/history`
 
-### Auth
-- `POST /api/auth/register` — `{ name, email, password }`
-- `POST /api/auth/login` — `{ email, password }` → `{ token, user }`
-
-### Clients (protégé)
-- `GET /api/customers`
-- `GET /api/customers/:id`
-- `POST /api/customers`
-- `PUT /api/customers/:id`
-- `DELETE /api/customers/:id`
-
-### Transactions (protégé)
-Préfixes `/api/transactions/sales` et `/api/transactions/expenses`.
-- `POST /api/transactions/sales`
-- `GET /api/transactions/sales`
-- `GET /api/transactions/sales/:id`
-- `PUT /api/transactions/sales/:id`
-- `DELETE /api/transactions/sales/:id`
-- `POST /api/transactions/expenses`
-- `GET /api/transactions/expenses`
-- `GET /api/transactions/expenses/:id`
-+- `PUT /api/transactions/expenses/:id`
-- `DELETE /api/transactions/expenses/:id`
-
-### Statistiques (protégé)
-- `GET /api/stats` — totaux ventes/dépenses, notifications non lues, factures
-- `GET /api/transactions/monthly` — stats mensuelles ventes/dépenses
-
-### Factures (protégé)
-- `GET /api/invoices`
-- `GET /api/invoices/:id`
-- `POST /api/invoices` — `{ customerId?, number?, total, issuedAt, status?, items[] }`
-- `PUT /api/invoices/:id`
-- `DELETE /api/invoices/:id` — supprime aussi les items
-
-### Notifications (protégé)
-- `POST /api/notifications`
-- `GET /api/notifications`
-- `GET /api/notifications/unread`
-- `GET /api/notifications/unread/count`
-- `PATCH /api/notifications/:id/read`
-- `DELETE /api/notifications/:id`
-
-### Mobile Money fictif (protégé)
-- `POST /api/mobile-money/mock` — `{ amount, currency, operator, customerId? }`
-- `GET /api/mobile-money/history`
-
-## Modèle Prisma
-- `User` — id, name, email, passwordHash, createdAt
-- `Customer` — clients liés aux transactions et factures
-- `Transaction` — type sale/expense, amount, currency, date, paymentMethod, category, userId, customerId?
-- `Invoice` & `InvoiceItem` — factures + lignes
-- `Notification` — message, type, read, timestamps
+## Points d’attention
+- Validations montant/date effectuées côté contrôleurs, prévoir aussi côté frontend.
+- Seed destructif : ne pas l’exécuter si vous devez conserver des données.
+- SQLite pratique en dev ; pour prod, changer `DATABASE_URL` et provider Prisma (Postgres/MySQL).
 
 ## Dépannage
 - Erreur JWT : vérifier `JWT_SECRET`.
