@@ -1,289 +1,183 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const logger = require('../utils/logger');
+const AppError = require('../utils/AppError');
 
-
-// 🔹 Créer une vente
-const createSale = async (req, res) => {
-  if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: 'User not authenticated' });
+const getType = (req) => {
+  const type = (req.query.type || req.body.type || '').toLowerCase();
+  if (type && type !== 'sale' && type !== 'expense') {
+    throw new AppError('Invalid transaction type', 400, 'VALIDATION_ERROR');
   }
+  return type;
+};
 
+exports.getTransactions = async (req, res, next) => {
   try {
-    const { amount, currency, date, description, paymentMethod, category } = req.body;
-    
-     // ✅ Validation du montant
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: "Amount must be greater than 0" });
-    }
+    const type = getType(req);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-    const sale = await prisma.transaction.create({
+    const where = { userId: req.user.id };
+    if (type) where.type = type;
+
+    const [total, transactions] = await Promise.all([
+      prisma.transaction.count({ where }),
+      prisma.transaction.findMany({
+        where,
+        orderBy: { date: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    res.json({
+      data: transactions,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit) || 1,
+    });
+  } catch (err) {
+    next(err instanceof AppError ? err : new AppError(err.message, 500));
+  }
+};
+
+exports.getTransactionById = async (req, res, next) => {
+  try {
+    const tx = await prisma.transaction.findUnique({
+      where: { id: parseInt(req.params.id) },
+    });
+    if (!tx || tx.userId !== req.user.id) return next(new AppError('Transaction not found', 404, 'NOT_FOUND'));
+    res.json(tx);
+  } catch (err) {
+    next(new AppError(err.message, 500));
+  }
+};
+
+exports.createTransaction = async (req, res, next) => {
+  try {
+    const type = getType(req) || req.body.type;
+    if (!type) return next(new AppError('Transaction type is required', 400, 'VALIDATION_ERROR'));
+
+    const { amount, currency, date, description, paymentMethod, category, customerId } = req.body;
+    if (!amount || amount <= 0) return next(new AppError('Amount must be greater than 0', 400, 'VALIDATION_ERROR'));
+    if (!date) return next(new AppError('Date is required', 400, 'VALIDATION_ERROR'));
+
+    const tx = await prisma.transaction.create({
       data: {
-        type: "sale",
+        type,
         userId: req.user.id,
-        customerId: customerId || null, // Temporarily set to null
+        customerId: customerId || null,
         amount,
         currency,
         date: new Date(date),
         description,
         paymentMethod,
-        category
-        
-      }
+        category,
+      },
     });
 
-    // 🔔 Notification automatique
     await prisma.notification.create({
       data: {
         userId: req.user.id,
-        message: `Nouvelle vente de ${amount} ${currency}`,
-        type: "sale"
-      }
+        message: `Nouvelle ${type === 'sale' ? 'vente' : 'dépense'} de ${amount} ${currency}`,
+        type,
+      },
     });
 
-    const { customerId, ...safeSale } = sale;
-    res.json(safeSale);
-
+    res.json(tx);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err instanceof AppError ? err : new AppError(err.message, 500));
   }
 };
 
-// Get all sales
-const getAllSales = async (req, res) => {
-  try {
-    const sales = await prisma.transaction.findMany({
-      where: { type: "sale", userId: req.user.id }
-    });
-    const cleaned = sales.map(({ customerId, ...rest }) => rest);
-    res.json(cleaned);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get sale by ID
-const getSaleById = async (req, res) => {
-  try {
-    const sale = await prisma.transaction.findUnique({
-      where: { id: parseInt(req.params.id) }
-    });
-    if (!sale) return res.status(404).json({ message: "Sale not found" });
-    const { customerId, ...safeSale } = sale;
-    res.json(safeSale);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Update sale
-const updateSale = async (req, res) => {
+exports.updateTransaction = async (req, res, next) => {
   try {
     if (req.body.amount && req.body.amount <= 0) {
-      return res.status(400).json({ message: "Amount must be greater than 0" });
+      return next(new AppError('Amount must be greater than 0', 400, 'VALIDATION_ERROR'));
     }
-    const sale = await prisma.transaction.update({
+    const tx = await prisma.transaction.update({
       where: { id: parseInt(req.params.id) },
-      data: req.body
+      data: req.body,
     });
-    const { customerId, ...safeSale } = sale;
-    res.json(safeSale);
-
+    res.json(tx);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
-// Delete sale
-const deleteSale= async (req, res) => {
+exports.deleteTransaction = async (req, res, next) => {
   try {
     await prisma.transaction.delete({
-      where: { id: parseInt(req.params.id) }
-    });
-    res.json({ message: "Sale deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-
-
-
-// Créer une dépense
-const createExpense = async (req, res) => {
-  try {
-    console.log("BODY:", req.body);
-    const { amount, currency, date, description, paymentMethod, category } = req.body;
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'User not authenticated' });
-    }
-
-    // ✅ Validation du montant
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: "Amount must be greater than 0" });
-    }
-
-    const expense = await prisma.transaction.create({
-      data: {
-        type: "expense",
-        userId: req.user.id,
-        amount,
-        currency,
-        customerId: customerId || null, // Temporarily set to null
-        date: new Date(date),
-        description,
-        paymentMethod,
-        category
-      }
-    });
-
-    // 🔔 Notification automatique
-    await prisma.notification.create({
-      data: {
-        userId: req.user.id,
-        message: `Nouvelle dépense de ${amount} ${currency}`,
-        type: "expense"
-      }
-    });
-
-    const { customerId, ...safeExpense } = expense;
-    res.json(safeExpense);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-const getAllExpenses = async (req, res) => {
-  try {
-    const expenses = await prisma.transaction.findMany({
-      where: {
-        type: "expense",
-        userId: req.user.id
-      }
-    });
-    const cleaned = expenses.map(({ customerId, ...rest }) => rest);
-    res.json(cleaned);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get expense by ID
-const getExpenseById = async (req, res) => {
-  try {
-    const expense = await prisma.transaction.findUnique({
-      where: { id: parseInt(req.params.id) }
-    });
-    if (!expense) return res.status(404).json({ message: "Expense not found" });
-    const { customerId, ...safeExpense } = expense;
-    res.json(safeExpense);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Update expense
-const updateExpense = async (req, res) => {
-  try {
-    if (req.body.amount && req.body.amount <= 0) {
-      return res.status(400).json({ message: "Amount must be greater than 0" });
-    }
-
-    const expense = await prisma.transaction.update({
       where: { id: parseInt(req.params.id) },
-      data: req.body
     });
-    const { customerId, ...safeExpense } = expense;
-    res.json(safeExpense);
-;
+    res.json({ message: 'Transaction deleted successfully' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
-// Delete expense
-const deleteExpense = async (req, res) => {
-  try {
-    await prisma.transaction.delete({
-      where: { id: parseInt(req.params.id) }
-    });
-    res.json({ message: "Expense deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-const getStatistics = async (req, res) => {
+exports.getStatistics = async (req, res, next) => {
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: 'User not authenticated' });
+    return next(new AppError('User not authenticated', 401, 'UNAUTHORIZED'));
   }
 
   try {
     const totalSales = await prisma.transaction.aggregate({
       _sum: { amount: true },
-      where: { type: "sale", userId: req.user.id }
+      where: { type: 'sale', userId: req.user.id },
     });
 
     const totalExpenses = await prisma.transaction.aggregate({
       _sum: { amount: true },
-      where: { type: "expense", userId: req.user.id }
+      where: { type: 'expense', userId: req.user.id },
     });
 
-    // Balance
     const balance = (totalSales._sum.amount || 0) - (totalExpenses._sum.amount || 0);
-    // Notifications non lues
     const unreadCount = await prisma.notification.count({
-      where: { userId: req.user.id, read: false }
+      where: { userId: req.user.id, read: false },
     });
-    // Factures (optionnel si tu veux compléter ton dashboard)
     const totalInvoices = await prisma.invoice.count({
-      where: { userId: req.user.id }
+      where: { userId: req.user.id },
     });
     const unpaidInvoices = await prisma.invoice.count({
-      where: { userId: req.user.id, status: "pending" }
+      where: { userId: req.user.id, status: 'pending' },
     });
 
-    // Placeholder temporaire
     return res.json({
       totalSales: totalSales._sum.amount || 0,
       totalExpenses: totalExpenses._sum.amount || 0,
       balance,
       unreadNotifications: unreadCount,
       totalInvoices,
-      unpaidInvoices
+      unpaidInvoices,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(new AppError('Server error', 500));
   }
 };
 
-const getMonthlyStats = async (req, res) => {
+exports.getMonthlyStats = async (req, res, next) => {
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: 'User not authenticated' });
+    return next(new AppError('User not authenticated', 401, 'UNAUTHORIZED'));
   }
 
   try {
     const userId = req.user.id;
 
-    // Récupérer toutes les ventes et dépenses
     const transactions = await prisma.transaction.findMany({
       where: {
         userId,
-        type: { in: ["sale", "expense"] }
+        type: { in: ['sale', 'expense'] },
       },
       select: {
         type: true,
         amount: true,
-        date: true
-      }
+        date: true,
+      },
     });
 
-    // Regrouper par mois
     const monthlyMap = {};
 
     transactions.forEach(({ type, amount, date }) => {
@@ -296,7 +190,6 @@ const getMonthlyStats = async (req, res) => {
       monthlyMap[key][type] += amount;
     });
 
-    // Transformer en tableau
     const monthlySales = [];
     const monthlyExpenses = [];
 
@@ -306,28 +199,24 @@ const getMonthlyStats = async (req, res) => {
     });
 
     res.json({ monthlySales, monthlyExpenses });
-
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(new AppError('Server error', 500));
   }
 };
 
-
-
-
-module.exports = {
-  createSale,
-  getAllSales,
-  getSaleById,
-  updateSale,
-  deleteSale,
-  createExpense,
-  getAllExpenses,
-  getExpenseById,
-  updateExpense,
-  deleteExpense,
-  getStatistics,
-  getMonthlyStats
+exports.getCategoryStats = async (req, res, next) => {
+  if (!req.user || !req.user.id) {
+    return next(new AppError('User not authenticated', 401, 'UNAUTHORIZED'));
+  }
+  try {
+    const userId = req.user.id;
+    const categories = await prisma.transaction.groupBy({
+      by: ['category', 'type'],
+      where: { userId },
+      _sum: { amount: true },
+    });
+    res.json(categories);
+  } catch (err) {
+    next(new AppError('Server error', 500));
+  }
 };
-

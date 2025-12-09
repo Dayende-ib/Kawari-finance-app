@@ -15,7 +15,7 @@ async function main() {
   await prisma.user.deleteMany();
 
   // Users
-  const passwordHash = await bcrypt.hash('password123', 10);
+  const passwordHash = await bcrypt.hash('Password123!', 10);
   const admin = await prisma.user.create({
     data: {
       name: 'Administrateur Kawari',
@@ -299,7 +299,7 @@ async function main() {
   });
 
   console.log('Seed completed successfully.');
-  console.log('Test account -> Email: admin@kawari.com | Password: password123');
+  console.log('Test account -> Email: admin@kawari.com | Password: Password123!');
 }
 
 main()

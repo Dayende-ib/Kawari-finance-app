@@ -16,8 +16,11 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "joi": "^17.12.1",
     "jsonwebtoken": "^9.0.2",
-    "seed": "^0.4.4"
+    "recharts": "^3.5.1",
+    "seed": "^0.4.4",
+    "winston": "^3.10.0"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

@@ -1,11 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const AppError = require('../utils/AppError');
 
 // Créer une notification
-exports.createNotification = async (req, res) => {
+exports.createNotification = async (req, res, next) => {
   const { message, type } = req.body;
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: 'User not authenticated' });
+    return next(new AppError('User not authenticated', 401, 'UNAUTHORIZED'));
   }
 
   try {
@@ -18,12 +19,12 @@ exports.createNotification = async (req, res) => {
     });
     res.json(notification);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
 // Récupérer toutes les notifications de l'utilisateur
-exports.getNotifications = async (req, res) => {
+exports.getNotifications = async (req, res, next) => {
   try {
     const notifications = await prisma.notification.findMany({
       where: { userId: req.user.id },
@@ -31,12 +32,12 @@ exports.getNotifications = async (req, res) => {
     });
     res.json(notifications);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
 // Marquer une notification comme lue
-exports.markAsRead = async (req, res) => {
+exports.markAsRead = async (req, res, next) => {
   const { id } = req.params;
   try {
     const notification = await prisma.notification.update({
@@ -45,23 +46,23 @@ exports.markAsRead = async (req, res) => {
     });
     res.json(notification);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
 // Supprimer une notification
-exports.deleteNotification = async (req, res) => {
+exports.deleteNotification = async (req, res, next) => {
   const { id } = req.params;
   try {
     await prisma.notification.delete({ where: { id: parseInt(id) } });
     res.json({ message: "Notification deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
 // Récupérer uniquement les notifications non lues
-exports.getUnreadNotifications = async (req, res) => {
+exports.getUnreadNotifications = async (req, res, next) => {
   try {
     const notifications = await prisma.notification.findMany({
       where: { userId: req.user.id, read: false },
@@ -69,19 +70,18 @@ exports.getUnreadNotifications = async (req, res) => {
     });
     res.json(notifications);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
 // Récupérer le nombre de notifications non lues
-exports.getUnreadCount = async (req, res) => {
+exports.getUnreadCount = async (req, res, next) => {
   try {
     const count = await prisma.notification.count({
       where: { userId: req.user.id, read: false }
     });
     res.json({ unreadCount: count });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
-

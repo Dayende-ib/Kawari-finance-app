@@ -1,20 +1,38 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const AppError = require('../utils/AppError');
 
-exports.getAllInvoices = async (req, res) => {
+exports.getAllInvoices = async (req, res, next) => {
   try {
-    const invoices = await prisma.invoice.findMany({
-      where: { userId: req.user.id },
-      include: { items: true }
-    });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-    res.json(invoices);
+    const where = { userId: req.user.id };
+    const [total, invoices] = await Promise.all([
+      prisma.invoice.count({ where }),
+      prisma.invoice.findMany({
+        where,
+        include: { items: true },
+        orderBy: { issuedAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    res.json({
+      data: invoices,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit) || 1,
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
-exports.getInvoiceById = async (req, res) => {
+exports.getInvoiceById = async (req, res, next) => {
   const { id } = req.params;
   try {
     const invoice = await prisma.invoice.findUnique({
@@ -22,26 +40,26 @@ exports.getInvoiceById = async (req, res) => {
       include: { items: true } // pour inclure les items de la facture
     });
     if (!invoice || invoice.userId !== req.user.id) {
-      return res.status(404).json({ message: 'Invoice not found' });
+      return next(new AppError('Invoice not found', 404, 'NOT_FOUND'));
     }
     res.json(invoice);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
-exports.createInvoice = async (req, res) => {
+exports.createInvoice = async (req, res, next) => {
   const { customerId, number, total, issuedAt, status, items } = req.body;
   
-  // ✅ Validations
+  // Validations
   if (!items || items.length === 0) {
-    return res.status(400).json({ message: "Invoice must have at least one item" });
+    return next(new AppError("Invoice must have at least one item", 400, 'VALIDATION_ERROR'));
   }
   if (!total || total <= 0) {
-    return res.status(400).json({ message: "Total must be greater than 0" });
+    return next(new AppError("Total must be greater than 0", 400, 'VALIDATION_ERROR'));
   }
   if (!issuedAt || isNaN(new Date(issuedAt).getTime())) {
-    return res.status(400).json({ message: "Invalid issuedAt date" });
+    return next(new AppError("Invalid issuedAt date", 400, 'VALIDATION_ERROR'));
   }
   try {
     const invoice = await prisma.invoice.create({
@@ -61,46 +79,46 @@ exports.createInvoice = async (req, res) => {
     await prisma.notification.create({
       data: {
         userId: req.user.id,
-        message: `Nouvelle facture créée (#${invoice.number}) pour un total de ${total}`,
+        message: `Nouvelle facture crÃ©Ã©e (#${invoice.number}) pour un total de ${total}`,
         type: "invoice"
       }
     });
 
     res.json(invoice);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
 
 
-exports.updateInvoice = async (req, res) => {
+exports.updateInvoice = async (req, res, next) => {
   const { id } = req.params;
   const { customerId, number, total, issuedAt, status, items } = req.body;
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: 'User not authenticated' });
+    return next(new AppError('User not authenticated', 401, 'UNAUTHORIZED'));
   }
 
   try {
-    // Vérifie si la facture existe
+    // VÃ©rifie si la facture existe
     const existingInvoice = await prisma.invoice.findUnique({
       where: { id: parseInt(id) },
       include: { items: true },
     });
 
     if (!existingInvoice) {
-      return res.status(404).json({ message: 'Invoice not found' });
+      return next(new AppError('Invoice not found', 404, 'NOT_FOUND'));
     }
 
-    // ✅ Validations
+    // Validations
     if (total && total <= 0) {
-      return res.status(400).json({ message: "Total must be greater than 0" });
+      return next(new AppError("Total must be greater than 0", 400, 'VALIDATION_ERROR'));
     }
     if (issuedAt && isNaN(new Date(issuedAt).getTime())) {
-      return res.status(400).json({ message: "Invalid issuedAt date" });
+      return next(new AppError("Invalid issuedAt date", 400, 'VALIDATION_ERROR'));
     }
 
-    // Mets à jour les items existants (simplification : supprime et recrée)
+    // Mets Ã  jour les items existants (simplification : supprime et recrÃ©e)
     await prisma.invoiceItem.deleteMany({ where: { invoiceId: parseInt(id) } });
 
     const updatedInvoice = await prisma.invoice.update({
@@ -118,24 +136,24 @@ exports.updateInvoice = async (req, res) => {
 
     res.json(updatedInvoice);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };
 
-exports.deleteInvoice = async (req, res) => {
+exports.deleteInvoice = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    // Vérifie si la facture existe
+    // VÃ©rifie si la facture existe
     const existingInvoice = await prisma.invoice.findUnique({
       where: { id: parseInt(id) },
     });
 
     if (!existingInvoice || existingInvoice.userId !== req.user.id) {
-      return res.status(404).json({ message: 'Invoice not found' });
+      return next(new AppError('Invoice not found', 404, 'NOT_FOUND'));
     }
 
-    // Supprime les items liés avant la facture
+    // Supprime les items liÃ©s avant la facture
     await prisma.invoiceItem.deleteMany({ where: { invoiceId: parseInt(id) } });
 
     // Supprime la facture
@@ -145,6 +163,6 @@ exports.deleteInvoice = async (req, res) => {
 
     res.json({ message: 'Invoice deleted successfully' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(new AppError(err.message, 500));
   }
 };

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
+import api from '../lib/apiInterceptor';
 import Skeleton from '../components/Skeleton';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -8,6 +8,7 @@ import Input from '../components/Input';
 import { FormEvent, useState } from 'react';
 import Badge from '../components/Badge';
 import { notify } from '../components/Toast';
+import Pagination from '../components/Pagination';
 
 type InvoiceItem = { label: string; quantity: number; unitPrice: number };
 type Invoice = {
@@ -18,6 +19,7 @@ type Invoice = {
   status: string;
   items: InvoiceItem[];
 };
+type InvoiceResponse = { data: Invoice[]; total: number; page: number; limit: number; pages: number };
 
 export default function Invoices() {
   const qc = useQueryClient();
@@ -29,10 +31,13 @@ export default function Invoices() {
     items: [{ label: '', quantity: 1, unitPrice: 0 }],
   });
   const [errors, setErrors] = useState<{ total?: string; issuedAt?: string }>({});
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const { data, isLoading, isError } = useQuery<Invoice[]>({
-    queryKey: ['invoices'],
-    queryFn: async () => (await api.get('/invoices')).data,
+  const { data, isLoading, isError } = useQuery<InvoiceResponse>({
+    queryKey: ['invoices', page, limit],
+    queryFn: async () => (await api.get('/invoices', { params: { page, limit } })).data,
+    keepPreviousData: true,
   });
 
   const createMutation = useMutation({
@@ -115,9 +120,10 @@ export default function Invoices() {
               ),
             },
           ]}
-          data={data}
+          data={data.data}
         />
       )}
+      {data && <Pagination page={data.page} pages={data.pages} onChange={setPage} />}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
+import api from '../lib/apiInterceptor';
 import { useState } from 'react';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -7,6 +7,7 @@ import Skeleton from '../components/Skeleton';
 import Card from '../components/Card';
 import Table from '../components/Table';
 import { notify } from '../components/Toast';
+import Pagination from '../components/Pagination';
 
 type Transaction = {
   id: number;
@@ -18,10 +19,11 @@ type Transaction = {
   category?: string;
   paymentMethod?: string;
 };
+type TransactionResponse = { data: Transaction[]; total: number; page: number; limit: number; pages: number };
 
 export default function Transactions() {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<'sales' | 'expenses'>('sales');
+  const [tab, setTab] = useState<'sale' | 'expense'>('sale');
   const [form, setForm] = useState({
     amount: 0,
     currency: 'XOF',
@@ -36,13 +38,14 @@ export default function Transactions() {
   const [page, setPage] = useState(1);
   const pageSize = 8;
 
-  const { data, isLoading, isError } = useQuery<Transaction[]>({
-    queryKey: ['transactions', tab],
-    queryFn: async () => (await api.get(`/transactions/${tab}`)).data,
+  const { data, isLoading, isError } = useQuery<TransactionResponse>({
+    queryKey: ['transactions', tab, page, pageSize],
+    queryFn: async () => (await api.get('/transactions', { params: { type: tab, page, limit: pageSize } })).data,
+    keepPreviousData: true,
   });
 
   const createMutation = useMutation({
-    mutationFn: () => api.post(`/transactions/${tab}`, { ...form }),
+    mutationFn: () => api.post('/transactions', { ...form }, { params: { type: tab } }),
     onSuccess: () => {
       notify('Transaction ajoutée');
       setForm({ amount: 0, currency: 'XOF', date: '', description: '', paymentMethod: '', category: '' });
@@ -53,7 +56,8 @@ export default function Transactions() {
     onError: () => notify('Erreur lors de la création', 'error'),
   });
 
-  const filtered = (data || [])
+  const rows = data?.data || [];
+  const filtered = rows
     .filter((t) => (minAmount ? t.amount >= minAmount : true))
     .sort((a, b) => {
       if (sort === 'dateDesc') return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -61,24 +65,24 @@ export default function Transactions() {
       if (sort === 'amountDesc') return b.amount - a.amount;
       return a.amount - b.amount;
     });
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const current = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = data?.pages || 1;
+  const current = filtered;
 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Transactions</h2>
 
       <div className="flex gap-2">
-        <Button variant={tab === 'sales' ? 'primary' : 'ghost'} onClick={() => setTab('sales')}>
+        <Button variant={tab === 'sale' ? 'primary' : 'ghost'} onClick={() => { setTab('sale'); setPage(1); }}>
           Ventes
         </Button>
-        <Button variant={tab === 'expenses' ? 'primary' : 'ghost'} onClick={() => setTab('expenses')}>
+        <Button variant={tab === 'expense' ? 'primary' : 'ghost'} onClick={() => { setTab('expense'); setPage(1); }}>
           Dépenses
         </Button>
       </div>
 
       <Card>
-        <div className="text-sm text-muted mb-2">Ajouter {tab === 'sales' ? 'une vente' : 'une dépense'}</div>
+        <div className="text-sm text-muted mb-2">Ajouter {tab === 'sale' ? 'une vente' : 'une dépense'}</div>
         <div className="grid md:grid-cols-6 gap-3">
           <Input
             label="Montant"
@@ -135,14 +139,8 @@ export default function Transactions() {
             <option value="amountAsc">Montant ↑</option>
           </select>
         </label>
-        <div className="ml-auto flex items-center gap-2 text-sm text-muted">
-          Page {page}/{totalPages}
-          <Button variant="ghost" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-            Précédent
-          </Button>
-          <Button variant="ghost" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
-            Suivant
-          </Button>
+        <div className="ml-auto">
+          <Pagination page={page} pages={totalPages} onChange={setPage} />
         </div>
       </Card>
 

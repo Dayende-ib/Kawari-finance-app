@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from './Toast';
 import { useQuery } from '@tanstack/react-query';
-import api from '../lib/api';
+import api from '../lib/apiInterceptor';
 
 const links = [
   { to: '/', label: 'Dashboard' },
@@ -14,7 +14,7 @@ const links = [
 ];
 
 export default function Layout() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const nav = useNavigate();
   const { data } = useQuery<{ unreadCount: number }>({
     queryKey: ['notifications', 'unread-count'],
@@ -60,8 +60,12 @@ export default function Layout() {
                 </span>
               ) : null}
             </div>
+            <div className="text-right">
+              <div className="text-slate-100">{user?.name || user?.email || 'Utilisateur'}</div>
+              <div className="text-xs text-muted">{user?.email}</div>
+            </div>
             <button
-              className="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700"
+              className="px-3 py-1 rounded-md bg-danger/80 hover:bg-danger text-sm"
               onClick={() => {
                 logout();
                 nav('/login');

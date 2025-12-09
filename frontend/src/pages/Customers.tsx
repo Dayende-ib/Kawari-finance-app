@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
+import api from '../lib/apiInterceptor';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Card from '../components/Card';
@@ -7,16 +7,29 @@ import Table from '../components/Table';
 import Skeleton from '../components/Skeleton';
 import { notify } from '../components/Toast';
 import { FormEvent, useState } from 'react';
+import Pagination from '../components/Pagination';
+import { useEffect } from 'react';
 
 type Customer = { id: number; name: string; phone?: string };
+type CustomerResponse = { data: Customer[]; total: number; page: number; limit: number; pages: number };
 
 export default function Customers() {
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: '', phone: '' });
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
 
-  const { data, isLoading, isError } = useQuery<Customer[]>({
-    queryKey: ['customers'],
-    queryFn: async () => (await api.get('/customers')).data,
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const { data, isLoading, isError } = useQuery<CustomerResponse>({
+    queryKey: ['customers', page, limit, search],
+    queryFn: async () => (await api.get('/customers', { params: { page, limit, search } })).data,
+    keepPreviousData: true,
   });
 
   const createMutation = useMutation({
@@ -62,6 +75,18 @@ export default function Customers() {
         </form>
       </Card>
 
+      <Card className="flex flex-wrap gap-3 items-center">
+        <Input
+          label="Rechercher"
+          value={searchInput}
+          onChange={(e) => {
+            setSearchInput(e.target.value);
+            setPage(1);
+          }}
+          hint="Nom ou téléphone"
+        />
+      </Card>
+
       {isLoading && <Skeleton rows={5} />}
       {isError && <div className="text-danger">Erreur de chargement.</div>}
 
@@ -79,9 +104,10 @@ export default function Customers() {
               ),
             },
           ]}
-          data={data}
+          data={data.data}
         />
       )}
+      {data && <Pagination page={data.page} pages={data.pages} onChange={setPage} />}
     </div>
   );
 }

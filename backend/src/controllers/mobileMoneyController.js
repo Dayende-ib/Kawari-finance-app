@@ -1,53 +1,50 @@
 // src/controllers/mobileMoneyController.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const logger = require('../utils/logger');
+const AppError = require('../utils/AppError');
 
-exports.mockTransaction = async (req, res) => {
+exports.mockTransaction = async (req, res, next) => {
   try {
     const { amount, currency, operator, customerId } = req.body;
 
-    // Auth obligatoire
     if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'User not authenticated' });
+      return next(new AppError('User not authenticated', 401, 'UNAUTHORIZED'));
     }
 
-    // Validation basique
     if (!amount || amount <= 0) {
-      return res.status(400).json({ message: "Amount must be greater than 0" });
+      return next(new AppError('Amount must be greater than 0', 400, 'VALIDATION_ERROR'));
     }
     if (!currency) {
-      return res.status(400).json({ message: "Currency is required" });
+      return next(new AppError('Currency is required', 400, 'VALIDATION_ERROR'));
     }
     if (!operator) {
-      return res.status(400).json({ message: "Operator is required" });
+      return next(new AppError('Operator is required', 400, 'VALIDATION_ERROR'));
     }
 
     if (customerId) {
-  const customerExists = await prisma.customer.findUnique({
-    where: { id: customerId }
-  });
+      const customerExists = await prisma.customer.findUnique({
+        where: { id: customerId }
+      });
+      if (!customerExists) {
+        return next(new AppError('Client introuvable. Verifie le customerId.', 400, 'VALIDATION_ERROR'));
+      }
+    }
 
-  if (!customerExists) {
-    return res.status(400).json({ message: "Client introuvable. Vérifie le customerId." });
-  }
-}
-
-    // ✅ Création transaction (alignée avec ton schéma)
     const transaction = await prisma.transaction.create({
       data: {
         type: 'sale',
         userId: req.user.id,
-        customerId: customerId || null, // optionnel
+        customerId: customerId || null,
         amount,
         currency,
-        date: new Date(), // obligatoire
+        date: new Date(),
         description: `Paiement Mobile Money via ${operator}`,
         paymentMethod: 'mobileMoney',
-        category: 'mobile' // optionnel, existe dans ton schéma
+        category: 'mobile'
       },
     });
 
-    // 🔔 Notification
     await prisma.notification.create({
       data: {
         userId: req.user.id,
@@ -58,12 +55,12 @@ exports.mockTransaction = async (req, res) => {
 
     return res.json(transaction);
   } catch (err) {
-    console.error('MobileMoney mock error:', err);
-    return res.status(500).json({ message: err.message });
+    logger.error('MobileMoney mock error', { error: err.message });
+    return next(new AppError(err.message, 500));
   }
 };
 
-exports.getMobileMoneyHistory = async (req, res) => {
+exports.getMobileMoneyHistory = async (req, res, next) => {
   try {
     const transactions = await prisma.transaction.findMany({
       where: {
@@ -77,7 +74,7 @@ exports.getMobileMoneyHistory = async (req, res) => {
 
     res.json(transactions);
   } catch (err) {
-    console.error("Erreur historique Mobile Money:", err);
-    res.status(500).json({ message: err.message });
+    logger.error('Erreur historique Mobile Money', { error: err.message });
+    next(new AppError(err.message, 500));
   }
 };

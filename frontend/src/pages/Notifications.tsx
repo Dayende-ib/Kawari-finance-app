@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
+import api from '../lib/apiInterceptor';
 import Skeleton from '../components/Skeleton';
 import Button from '../components/Button';
 import Card from '../components/Card';
