@@ -1,144 +1,140 @@
-# Kawari Finance - Backend
+# Kawari Finance – Backend
 
-API Node.js/Express pour un assistant financier destiné aux petites entreprises du Burkina Faso. Elle gère l’authentification, les clients, les ventes/dépenses, les factures, les notifications et un flux Mobile Money fictif, avec stockage via Prisma/SQLite.
+API Node.js/Express pour un assistant financier destiné aux petites entreprises du Burkina Faso. Elle couvre l’authentification, les clients, les ventes/dépenses, les factures, les notifications et un flux Mobile Money fictif, avec stockage Prisma/SQLite.
 
-## Périmètre et fonctionnalités
-- Authentification JWT (inscription/connexion) avec mots de passe hachés (bcrypt).
+## Fonctionnalités
+- Authentification JWT (inscription/connexion), mots de passe hachés (bcrypt).
 - Gestion des clients (CRUD).
-- Transactions scindées en ventes et dépenses, avec statistiques globales et mensuelles.
-- Facturation (CRUD) incluant les lignes de facture.
+- Transactions : ventes et dépenses, stats globales et mensuelles.
+- Facturation (CRUD) avec lignes d’article.
 - Notifications (création, lecture, suppression, compteur non lus).
 - Simulation de paiements Mobile Money.
-- Seeding Prisma pour obtenir des données de démo et un compte test.
+- Seed Prisma idempotent (réinitialise les tables avant d’insérer les données de démo).
 
-## Stack technique
+## Stack
 - Node.js + Express 5
-- Prisma 5 + SQLite (fichier `prisma/dev.db`)
+- Prisma 5 + SQLite (`backend/prisma/dev.db`)
 - JWT + bcryptjs
 - CORS, dotenv, nodemon (dev)
 
-## Pré-requis
-- Node.js ≥ 18 (recommandé)
+## Prérequis
+- Node.js ≥ 18
 - npm
 
-## Installation et lancement
+## Installation
 ```bash
 cd backend
 npm install
-
-# Créer un fichier .env
-copy NUL .env  # sous Windows, sinon: touch .env
 ```
 
-Contenu recommandé pour `.env` :
+## Environnement (.env)
+- Fichier attendu : `backend/.env` (un exemple est fourni dans `env.example` à la racine).
+- Variables minimales :
 ```
 PORT=5000
 DATABASE_URL="file:./prisma/dev.db"
 JWT_SECRET=change_me
 ```
+- Windows : `copy env.example backend/.env` puis ajuster les valeurs.
+- Linux/macOS : `cp env.example backend/.env` puis ajuster.
 
-Synchroniser la base et insérer les données de démo :
+## Base de données
+Synchroniser le schéma et remplir la démo :
 ```bash
-npx prisma migrate dev --name init      # ou npx prisma db push
-npx prisma db seed                      # crée l’admin et les données exemples
+npx prisma migrate dev --name init   # ou: npx prisma db push
+npx prisma db seed                   # réinitialise les tables, insère les données de démo
 ```
+⚠️ Le seed supprime les données existantes (deleteMany sur toutes les tables).
 
-Lancer l’API :
+## Lancement
 ```bash
-# mode simple
-node server.js
-# ou avec rechargement
-npx nodemon server.js
+node server.js          # lancement simple
+npx nodemon server.js   # rechargement auto en dev
 ```
-L’API écoute par défaut sur `http://localhost:5000`.
+API par défaut sur `http://localhost:5000`.
 
-## Données de démo (après seed)
+## Compte de démo
 - Email : `admin@kawari.com`
 - Mot de passe : `password123`
 
-## Structure des dossiers
+## Structure
 ```
 backend/
-├─ server.js                 # Point d’entrée Express
+├─ server.js              # point d’entrée Express
 ├─ prisma/
-│  ├─ schema.prisma          # Modèle de données
-│  └─ seed.js                # Seeding de la base
+│  ├─ schema.prisma       # modèle de données
+│  └─ seed.js             # seed idempotent
 └─ src/
-   ├─ controllers/           # Logique métier (auth, clients, transactions, etc.)
-   ├─ middlewares/           # authMiddleware (JWT)
-   ├─ routes/                # Définition des endpoints
-   └─ utils/                 # Helpers (hash, jwt)
+   ├─ controllers/        # logique métier
+   ├─ middlewares/        # authMiddleware (JWT)
+   ├─ routes/             # endpoints
+   └─ utils/              # hash, jwt
 ```
 
 ## Authentification
-Toutes les routes (sauf `/api/auth/*`) exigent le header :
+Toutes les routes sauf `/api/auth/*` requièrent :
 ```
 Authorization: Bearer <token>
 ```
 Token obtenu via `/api/auth/login` ou `/api/auth/register`.
 
-## Endpoints principaux
+## Endpoints
 
 ### Auth
-- `POST /api/auth/register` — inscription `{ name, email, password }`
-- `POST /api/auth/login` — connexion `{ email, password }` → `{ token, user }`
+- `POST /api/auth/register` — `{ name, email, password }`
+- `POST /api/auth/login` — `{ email, password }` → `{ token, user }`
 
 ### Clients (protégé)
-- `GET /api/customers` — liste
-- `GET /api/customers/:id` — détail
-- `POST /api/customers` — création `{ name, phone? }`
-- `PUT /api/customers/:id` — mise à jour
-- `DELETE /api/customers/:id` — suppression
+- `GET /api/customers`
+- `GET /api/customers/:id`
+- `POST /api/customers`
+- `PUT /api/customers/:id`
+- `DELETE /api/customers/:id`
 
-### Ventes & dépenses (protégé)
+### Transactions (protégé)
 Préfixes `/api/transactions/sales` et `/api/transactions/expenses`.
-- `POST /api/transactions/sales` — créer une vente
-- `GET /api/transactions/sales` — lister les ventes
-- `GET /api/transactions/sales/:id` — détail vente
-- `PUT /api/transactions/sales/:id` — mise à jour
-- `DELETE /api/transactions/sales/:id` — suppression
-- `POST /api/transactions/expenses` — créer une dépense
-- `GET /api/transactions/expenses` — lister les dépenses
-- `GET /api/transactions/expenses/:id` — détail dépense
-- `PUT /api/transactions/expenses/:id` — mise à jour
-- `DELETE /api/transactions/expenses/:id` — suppression
+- `POST /api/transactions/sales`
+- `GET /api/transactions/sales`
+- `GET /api/transactions/sales/:id`
+- `PUT /api/transactions/sales/:id`
+- `DELETE /api/transactions/sales/:id`
+- `POST /api/transactions/expenses`
+- `GET /api/transactions/expenses`
+- `GET /api/transactions/expenses/:id`
++- `PUT /api/transactions/expenses/:id`
+- `DELETE /api/transactions/expenses/:id`
 
 ### Statistiques (protégé)
-- `GET /api/stats` — agrégats globaux ventes/dépenses, notifications non lues, factures
-- `GET /api/transactions/monthly` — stats mensuelles (ventes/dépenses)
+- `GET /api/stats` — totaux ventes/dépenses, notifications non lues, factures
+- `GET /api/transactions/monthly` — stats mensuelles ventes/dépenses
 
 ### Factures (protégé)
-- `GET /api/invoices` — liste (avec items)
-- `GET /api/invoices/:id` — détail
-- `POST /api/invoices` — création `{ customerId?, number?, total, issuedAt, status?, items[] }`
-- `PUT /api/invoices/:id` — mise à jour
-- `DELETE /api/invoices/:id` — suppression (supprime aussi les items)
+- `GET /api/invoices`
+- `GET /api/invoices/:id`
+- `POST /api/invoices` — `{ customerId?, number?, total, issuedAt, status?, items[] }`
+- `PUT /api/invoices/:id`
+- `DELETE /api/invoices/:id` — supprime aussi les items
 
 ### Notifications (protégé)
-- `POST /api/notifications` — créer `{ message, type }`
-- `GET /api/notifications` — lister
-- `GET /api/notifications/unread` — non lues
-- `GET /api/notifications/unread/count` — compteur
-- `PATCH /api/notifications/:id/read` — marquer comme lue
-- `DELETE /api/notifications/:id` — suppression
+- `POST /api/notifications`
+- `GET /api/notifications`
+- `GET /api/notifications/unread`
+- `GET /api/notifications/unread/count`
+- `PATCH /api/notifications/:id/read`
+- `DELETE /api/notifications/:id`
 
 ### Mobile Money fictif (protégé)
-- `POST /api/mobile-money/mock` — crée une transaction Mobile Money `{ amount, currency, operator, customerId? }`
-- `GET /api/mobile-money/history` — historique des paiements Mobile Money
+- `POST /api/mobile-money/mock` — `{ amount, currency, operator, customerId? }`
+- `GET /api/mobile-money/history`
 
-## Modèle de données (Prisma)
-- `User` — `id, name, email, passwordHash, createdAt`
-- `Customer` — clients associés aux transactions et factures.
-- `Transaction` — ventes et dépenses (type, amount, currency, date, paymentMethod, category, userId, customerId?).
-- `Invoice` & `InvoiceItem` — factures et lignes de facture.
-- `Notification` — message, type, lu/non lu, horodatage.
-
-## Points d’attention
-- Les validations de montant/date sont faites côté contrôleurs, mais prévoyez des validations côté front.
-- Le schéma stocke `currency` en clair (ex. `XOF`), pas d’enum.
-- SQLite est pratique pour le dev; passer à Postgres/MySQL en prod en ajustant `DATABASE_URL` et le provider Prisma.
+## Modèle Prisma
+- `User` — id, name, email, passwordHash, createdAt
+- `Customer` — clients liés aux transactions et factures
+- `Transaction` — type sale/expense, amount, currency, date, paymentMethod, category, userId, customerId?
+- `Invoice` & `InvoiceItem` — factures + lignes
+- `Notification` — message, type, read, timestamps
 
 ## Dépannage
 - Erreur JWT : vérifier `JWT_SECRET`.
-- Problème de base : regénérer avec `npx prisma migrate dev` ou `npx prisma db push`, puis `npx prisma db seed`.
-- Inspecter la base : `npx prisma studio`.
+- Base cassée : `npx prisma migrate dev` (ou `db push`), puis `npx prisma db seed`.
+- Inspection base : `npx prisma studio`.
