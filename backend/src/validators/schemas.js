@@ -26,7 +26,7 @@ const customerUpdateSchema = Joi.object({
 });
 
 const transactionCreateSchema = Joi.object({
-  type: Joi.string().valid('sale', 'expense').optional(),
+  type: Joi.string().valid('sale', 'expense').required(),
   amount: Joi.number().positive().required(),
   currency: Joi.string().required(),
   date: Joi.date().iso().required(),

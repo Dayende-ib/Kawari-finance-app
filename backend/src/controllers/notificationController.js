@@ -8,6 +8,12 @@ exports.createNotification = async (req, res, next) => {
   if (!req.user || !req.user.id) {
     return next(new AppError('User not authenticated', 401, 'UNAUTHORIZED'));
   }
+  if (!message) {
+    return next(new AppError('Message is required', 400, 'VALIDATION_ERROR'));
+  }
+  if (!type) {
+    return next(new AppError('Type is required', 400, 'VALIDATION_ERROR'));
+  }
 
   try {
     const notification = await prisma.notification.create({
