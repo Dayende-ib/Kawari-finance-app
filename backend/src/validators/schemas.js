@@ -16,11 +16,13 @@ const loginSchema = Joi.object({
 const customerCreateSchema = Joi.object({
   name: Joi.string().min(2).required(),
   phone: Joi.string().allow('', null),
+  email: Joi.string().email().allow('', null),
 });
 
 const customerUpdateSchema = Joi.object({
   name: Joi.string().min(2).required(),
   phone: Joi.string().allow('', null),
+  email: Joi.string().email().allow('', null),
 });
 
 const transactionCreateSchema = Joi.object({
@@ -56,7 +58,7 @@ const invoiceCreateSchema = Joi.object({
   number: Joi.string().allow('', null),
   total: Joi.number().positive().required(),
   issuedAt: Joi.date().iso().required(),
-  status: Joi.string().allow('', null),
+  status: Joi.string().valid('pending', 'paid', 'overdue').allow('', null),
   items: Joi.array().items(invoiceItemSchema).min(1).required(),
 });
 
@@ -65,7 +67,7 @@ const invoiceUpdateSchema = Joi.object({
   number: Joi.string().allow('', null),
   total: Joi.number().positive().optional(),
   issuedAt: Joi.date().iso().optional(),
-  status: Joi.string().allow('', null),
+  status: Joi.string().valid('pending', 'paid', 'overdue').allow('', null),
   items: Joi.array().items(invoiceItemSchema).min(1).optional(),
 });
 

@@ -1,15 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import api from '../lib/apiInterceptor';
-import { useState } from 'react';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import Skeleton from '../components/Skeleton';
-import Card from '../components/Card';
-import Table from '../components/Table';
-import { notify } from '../components/Toast';
-import Pagination from '../components/Pagination';
+import { Plus, Filter, TrendingUp, TrendingDown, Edit2, Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
-type Transaction = {
+interface Transaction {
   id: number;
   type: 'sale' | 'expense';
   amount: number;
@@ -18,147 +12,252 @@ type Transaction = {
   description?: string;
   category?: string;
   paymentMethod?: string;
-};
-type TransactionResponse = { data: Transaction[]; total: number; page: number; limit: number; pages: number };
+  customerId?: number;
+  createdAt: string;
+}
+
+interface Stats {
+  totalSales: number;
+  totalExpenses: number;
+  balance: number;
+  unreadNotifications: number;
+  totalInvoices: number;
+  unpaidInvoices: number;
+}
 
 export default function Transactions() {
-  const qc = useQueryClient();
-  const [tab, setTab] = useState<'sale' | 'expense'>('sale');
-  const [form, setForm] = useState({
-    amount: 0,
-    currency: 'XOF',
-    date: '',
-    description: '',
-    paymentMethod: '',
-    category: '',
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [transactionType, setTransactionType] = useState<'sale' | 'expense'>('sale');
+  
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery<Transaction[]>({
+    queryKey: ['transactions'],
+    queryFn: async () => (await api.get('/transactions')).data,
   });
-  const [errors, setErrors] = useState<{ amount?: string; date?: string }>({});
-  const [sort, setSort] = useState<'dateDesc' | 'dateAsc' | 'amountDesc' | 'amountAsc'>('dateDesc');
-  const [minAmount, setMinAmount] = useState(0);
-  const [page, setPage] = useState(1);
-  const pageSize = 8;
-
-  const { data, isLoading, isError } = useQuery<TransactionResponse>({
-    queryKey: ['transactions', tab, page, pageSize],
-    queryFn: async () => (await api.get('/transactions', { params: { type: tab, page, limit: pageSize } })).data,
-    keepPreviousData: true,
+  
+  const { data: statsData } = useQuery<Stats>({
+    queryKey: ['transaction-stats'],
+    queryFn: async () => (await api.get('/stats')).data,
   });
 
-  const createMutation = useMutation({
-    mutationFn: () => api.post('/transactions', { ...form }, { params: { type: tab } }),
-    onSuccess: () => {
-      notify('Transaction ajoutée');
-      setForm({ amount: 0, currency: 'XOF', date: '', description: '', paymentMethod: '', category: '' });
-      setErrors({});
-      qc.invalidateQueries({ queryKey: ['transactions'] });
-      setPage(1);
-    },
-    onError: () => notify('Erreur lors de la création', 'error'),
-  });
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'XOF',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
 
-  const rows = data?.data || [];
-  const filtered = rows
-    .filter((t) => (minAmount ? t.amount >= minAmount : true))
-    .sort((a, b) => {
-      if (sort === 'dateDesc') return new Date(b.date).getTime() - new Date(a.date).getTime();
-      if (sort === 'dateAsc') return new Date(a.date).getTime() - new Date(b.date).getTime();
-      if (sort === 'amountDesc') return b.amount - a.amount;
-      return a.amount - b.amount;
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     });
-  const totalPages = data?.pages || 1;
-  const current = filtered;
+  };
+
+  const TransactionItem = ({ transaction }: { transaction: Transaction }) => {
+    // Récupérer le client si customerId existe
+    const getClientName = () => {
+      return transaction.customerId ? `Client ${transaction.customerId}` : 'Aucun client';
+    };
+
+    return (
+      <div className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors">
+        <div className="flex items-center gap-4">
+          <div className={`p-2 rounded-lg ${transaction.type === 'sale' ? 'bg-green-100' : transaction.type === 'expense' ? 'bg-red-100' : 'bg-gray-100'}`}>
+            {transaction.type === 'sale' ? (
+              <TrendingUp className="w-5 h-5 text-green-600" />
+            ) : transaction.type === 'expense' ? (
+              <TrendingDown className="w-5 h-5 text-red-600" />
+            ) : (
+              <TrendingUp className="w-5 h-5 text-gray-600" />
+            )}
+          </div>
+          <div>
+            <p className="font-medium text-gray-900">{getClientName()}</p>
+            <p className="text-sm text-gray-500">{formatDate(transaction.date)}</p>
+          </div>
+        </div>
+        <div className="text-right flex items-center gap-3">
+          <div>
+            <p className={`font-semibold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(Math.abs(transaction.amount))}
+            </p>
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              transaction.type === 'sale' ? 'bg-green-100 text-green-700' : 
+              transaction.type === 'expense' ? 'bg-red-100 text-red-700' : 
+              'bg-gray-100 text-gray-700'
+            }`}>
+              {transaction.type === 'sale' ? 'Vente' : 
+               transaction.type === 'expense' ? 'Dépense' : 
+               'Inconnu'}
+            </span>
+          </div>
+          <div className="flex gap-1">
+            <button className="p-1 hover:bg-gray-200 rounded">
+              <Edit2 className="w-4 h-4 text-gray-600" />
+            </button>
+            <button className="p-1 hover:bg-red-100 rounded">
+              <Trash2 className="w-4 h-4 text-red-600" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const TransactionModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowTransactionModal(false)}>
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-900">
+            {transactionType === 'sale' ? 'Nouvelle Vente' : 'Nouvelle Dépense'}
+          </h3>
+          <button onClick={() => setShowTransactionModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <form className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Client / Fournisseur</label>
+            <input 
+              type="text" 
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Nom du client ou fournisseur"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Montant (FCFA)</label>
+            <input 
+              type="number" 
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+            <select 
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              value={transactionType === 'sale' ? 'Vente de produits' : 'Fournitures'}
+              onChange={(e) => setTransactionType(transactionType)}
+            >
+              {transactionType === 'sale' ? (
+                <>
+                  <option>Vente de produits</option>
+                  <option>Services</option>
+                  <option>Consulting</option>
+                </>
+              ) : (
+                <>
+                  <option>Fournitures</option>
+                  <option>Électricité</option>
+                  <option>Loyer</option>
+                  <option>Salaires</option>
+                  <option>Marketing</option>
+                </>
+              )}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <input 
+              type="date" 
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              defaultValue={new Date().toISOString().split('T')[0]}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description (optionnel)</label>
+            <textarea 
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              rows={3}
+              placeholder="Détails supplémentaires..."
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button 
+              type="button"
+              onClick={() => setShowTransactionModal(false)}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+            <button 
+              type="submit"
+              className={`flex-1 px-4 py-2 text-white rounded-lg ${
+                transactionType === 'sale' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+              }`}
+            >
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Transactions</h2>
-
-      <div className="flex gap-2">
-        <Button variant={tab === 'sale' ? 'primary' : 'ghost'} onClick={() => { setTab('sale'); setPage(1); }}>
-          Ventes
-        </Button>
-        <Button variant={tab === 'expense' ? 'primary' : 'ghost'} onClick={() => { setTab('expense'); setPage(1); }}>
-          Dépenses
-        </Button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-3">
+          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">Toutes</button>
+          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Ventes</button>
+          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Dépenses</button>
+        </div>
+        <div className="flex gap-3">
+          <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            <Filter className="w-5 h-5 text-gray-600" />
+          </button>
+          <button 
+            onClick={() => {
+              setTransactionType('sale');
+              setShowTransactionModal(true);
+            }}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Nouvelle Transaction
+          </button>
+        </div>
       </div>
 
-      <Card>
-        <div className="text-sm text-muted mb-2">Ajouter {tab === 'sale' ? 'une vente' : 'une dépense'}</div>
-        <div className="grid md:grid-cols-6 gap-3">
-          <Input
-            label="Montant"
-            type="number"
-            value={form.amount}
-            onChange={(e) => setForm((f) => ({ ...f, amount: Number(e.target.value) }))}
-            error={errors.amount}
-          />
-          <Input label="Devise" value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))} />
-          <Input label="Date" type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} error={errors.date} />
-          <Input label="Description" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
-          <Input label="Moyen paiement" value={form.paymentMethod} onChange={(e) => setForm((f) => ({ ...f, paymentMethod: e.target.value }))} />
-          <Input label="Catégorie" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} />
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="p-6 border-b">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-1">Revenus totaux</p>
+              <p className="text-2xl font-bold text-green-600">{statsData ? formatCurrency(statsData.totalSales) : '0'}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-1">Dépenses totales</p>
+              <p className="text-2xl font-bold text-red-600">{statsData ? formatCurrency(statsData.totalExpenses) : '0'}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-1">Solde net</p>
+              <p className="text-2xl font-bold text-blue-600">{statsData ? formatCurrency(statsData.balance) : '0'}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-1">Transactions</p>
+              <p className="text-2xl font-bold text-gray-900">{transactionsData ? transactionsData.length : 0}</p>
+            </div>
+          </div>
         </div>
-        <div className="mt-3">
-          <Button
-            onClick={() => {
-              const nextErrors: typeof errors = {};
-              if (!form.amount || form.amount <= 0) nextErrors.amount = 'Le montant doit être > 0';
-              if (!form.date) nextErrors.date = 'Date requise';
-              setErrors(nextErrors);
-              if (Object.keys(nextErrors).length === 0) createMutation.mutate();
-            }}
-            loading={createMutation.isPending}
-          >
-            Ajouter
-          </Button>
+        <div className="divide-y">
+          {transactionsLoading ? (
+            <div className="p-6 text-center text-gray-500">Chargement...</div>
+          ) : transactionsData && transactionsData.length > 0 ? (
+            transactionsData.map((transaction) => (
+              <TransactionItem key={transaction.id} transaction={transaction} />
+            ))
+          ) : (
+            <div className="p-6 text-center text-gray-500">Aucune transaction trouvée</div>
+          )}
         </div>
-      </Card>
-
-      <Card className="flex flex-wrap gap-3 items-end">
-        <Input
-          label="Filtrer montant min"
-          type="number"
-          value={minAmount}
-          onChange={(e) => {
-            setMinAmount(Number(e.target.value));
-            setPage(1);
-          }}
-        />
-        <label className="text-sm text-muted flex flex-col">
-          Tri
-          <select
-            className="bg-slate-800 rounded-md px-3 py-2"
-            value={sort}
-            onChange={(e) => {
-              setSort(e.target.value as any);
-              setPage(1);
-            }}
-          >
-            <option value="dateDesc">Date ↓</option>
-            <option value="dateAsc">Date ↑</option>
-            <option value="amountDesc">Montant ↓</option>
-            <option value="amountAsc">Montant ↑</option>
-          </select>
-        </label>
-        <div className="ml-auto">
-          <Pagination page={page} pages={totalPages} onChange={setPage} />
-        </div>
-      </Card>
-
-      {isLoading && <Skeleton rows={5} />}
-      {isError && <div className="text-danger">Erreur de chargement.</div>}
-
-      {data && (
-        <Table
-          columns={[
-            { header: 'Montant', render: (t) => `${t.amount.toLocaleString()} ${t.currency}` },
-            { header: 'Date', render: (t) => new Date(t.date).toLocaleDateString() },
-            { header: 'Description', render: (t) => t.description || '—' },
-            { header: 'Paiement', render: (t) => t.paymentMethod || '—' },
-            { header: 'Catégorie', render: (t) => t.category || '—' },
-          ]}
-          data={current}
-        />
-      )}
+      </div>
+      
+      {showTransactionModal && <TransactionModal />}
     </div>
   );
 }

@@ -44,25 +44,39 @@ async function main() {
       passwordHash,
     },
   });
+  const user4 = await prisma.user.create({
+    data: {
+      name: 'Alice Somé',
+      email: 'alice@kawari.com',
+      passwordHash,
+    },
+  });
+  const user5 = await prisma.user.create({
+    data: {
+      name: 'Thomas Sawadogo',
+      email: 'thomas@kawari.com',
+      passwordHash,
+    },
+  });
 
   // Customers
   const customer1 = await prisma.customer.create({
-    data: { name: 'Aminata Kabore', phone: '+226 70 12 34 56' },
+    data: { name: 'Aminata Kabore', email: 'aminata@kabore.bf', phone: '+226 70 12 34 56' },
   });
   const customer2 = await prisma.customer.create({
-    data: { name: 'Souleymane Sawadogo', phone: '+226 76 98 76 54' },
+    data: { name: 'Souleymane Sawadogo', email: 'souleymane@sawadogo.bf', phone: '+226 76 98 76 54' },
   });
   const customer3 = await prisma.customer.create({
-    data: { name: 'Fatou Traore', phone: '+226 70 55 44 33' },
+    data: { name: 'Fatou Traore', email: 'fatou@traore.bf', phone: '+226 70 55 44 33' },
   });
   const customer4 = await prisma.customer.create({
-    data: { name: 'Abdoulaye Diallo', phone: '+226 74 10 20 30' },
+    data: { name: 'Abdoulaye Diallo', email: 'abdoulaye@diallo.bf', phone: '+226 74 10 20 30' },
   });
   const customer5 = await prisma.customer.create({
-    data: { name: 'Awa Compaore', phone: '+226 78 22 11 44' },
+    data: { name: 'Awa Compaore', email: 'awa@compaore.bf', phone: '+226 78 22 11 44' },
   });
   const customer6 = await prisma.customer.create({
-    data: { name: 'Kadiatou Coulibaly', phone: '+226 75 66 77 55' },
+    data: { name: 'Kadiatou Coulibaly', email: 'kadiatou@coulibaly.bf', phone: '+226 75 66 77 55' },
   });
 
   // Transactions (sales/expenses)
@@ -175,6 +189,75 @@ async function main() {
     },
   });
 
+  // Transactions pour les nouveaux utilisateurs
+  await prisma.transaction.create({
+    data: {
+      userId: user4.id,
+      customerId: customer1.id,
+      type: 'sale',
+      amount: 35000,
+      currency: 'XOF',
+      date: new Date('2024-12-12'),
+      description: 'Vente de produits électroniques',
+      paymentMethod: 'Carte',
+      category: 'vente',
+    },
+  });
+
+  await prisma.transaction.create({
+    data: {
+      userId: user4.id,
+      type: 'expense',
+      amount: 8000,
+      currency: 'XOF',
+      date: new Date('2024-12-13'),
+      description: 'Frais de transport',
+      paymentMethod: 'Especes',
+      category: 'transport',
+    },
+  });
+
+  await prisma.transaction.create({
+    data: {
+      userId: user5.id,
+      customerId: customer3.id,
+      type: 'sale',
+      amount: 42000,
+      currency: 'XOF',
+      date: new Date('2024-12-14'),
+      description: 'Prestation de services',
+      paymentMethod: 'Mobile Money',
+      category: 'service',
+    },
+  });
+
+  await prisma.transaction.create({
+    data: {
+      userId: user5.id,
+      customerId: customer5.id,
+      type: 'sale',
+      amount: 28000,
+      currency: 'XOF',
+      date: new Date('2024-12-15'),
+      description: 'Vente de marchandises',
+      paymentMethod: 'Especes',
+      category: 'vente',
+    },
+  });
+
+  await prisma.transaction.create({
+    data: {
+      userId: user5.id,
+      type: 'expense',
+      amount: 11000,
+      currency: 'XOF',
+      date: new Date('2024-12-16'),
+      description: 'Achat de fournitures',
+      paymentMethod: 'Carte',
+      category: 'depense',
+    },
+  });
+
   // Invoices and items
   await prisma.invoice.create({
     data: {
@@ -183,7 +266,7 @@ async function main() {
       number: 'INV-2024-001',
       total: 25000,
       issuedAt: new Date('2024-12-01'),
-      status: 'payee',
+      status: 'paid',
       items: {
         create: [
           { label: 'Produit A', quantity: 5, unitPrice: 3000 },
@@ -200,7 +283,7 @@ async function main() {
       number: 'INV-2024-002',
       total: 45000,
       issuedAt: new Date('2024-12-03'),
-      status: 'en attente',
+      status: 'pending',
       items: {
         create: [{ label: 'Service consultation', quantity: 1, unitPrice: 45000 }],
       },
@@ -214,7 +297,7 @@ async function main() {
       number: 'INV-2024-003',
       total: 32000,
       issuedAt: new Date('2024-12-07'),
-      status: 'payee',
+      status: 'paid',
       items: {
         create: [{ label: 'Prestation technique', quantity: 1, unitPrice: 32000 }],
       },
@@ -228,7 +311,7 @@ async function main() {
       number: 'INV-2024-004',
       total: 18000,
       issuedAt: new Date('2024-12-08'),
-      status: 'payee',
+      status: 'paid',
       items: {
         create: [{ label: 'Accessoires divers', quantity: 6, unitPrice: 3000 }],
       },
@@ -242,11 +325,126 @@ async function main() {
       number: 'INV-2024-005',
       total: 52000,
       issuedAt: new Date('2024-12-10'),
-      status: 'en attente',
+      status: 'pending',
       items: {
         create: [
           { label: 'Pack produits', quantity: 1, unitPrice: 42000 },
           { label: 'Livraison', quantity: 1, unitPrice: 10000 },
+        ],
+      },
+    },
+  });
+
+  // Ajout de factures en retard
+  await prisma.invoice.create({
+    data: {
+      userId: admin.id,
+      customerId: customer3.id,
+      number: 'INV-2024-006',
+      total: 75000,
+      issuedAt: new Date('2024-11-15'),
+      status: 'overdue',
+      items: {
+        create: [
+          { label: 'Services de consultation', quantity: 1, unitPrice: 50000 },
+          { label: 'Frais de déplacement', quantity: 1, unitPrice: 25000 },
+        ],
+      },
+    },
+  });
+
+  await prisma.invoice.create({
+    data: {
+      userId: user2.id,
+      customerId: customer1.id,
+      number: 'INV-2024-007',
+      total: 98000,
+      issuedAt: new Date('2024-11-20'),
+      status: 'overdue',
+      items: {
+        create: [
+          { label: 'Produits électroniques', quantity: 2, unitPrice: 49000 },
+        ],
+      },
+    },
+  });
+
+  // Ajout de factures pour les nouveaux utilisateurs
+  await prisma.invoice.create({
+    data: {
+      userId: user4.id,
+      customerId: customer2.id,
+      number: 'INV-2024-008',
+      total: 35000,
+      issuedAt: new Date('2024-12-12'),
+      status: 'paid',
+      items: {
+        create: [
+          { label: 'Produits électroniques', quantity: 1, unitPrice: 35000 },
+        ],
+      },
+    },
+  });
+
+  await prisma.invoice.create({
+    data: {
+      userId: user4.id,
+      customerId: customer4.id,
+      number: 'INV-2024-009',
+      total: 22000,
+      issuedAt: new Date('2024-12-13'),
+      status: 'pending',
+      items: {
+        create: [
+          { label: 'Services de maintenance', quantity: 2, unitPrice: 11000 },
+        ],
+      },
+    },
+  });
+
+  await prisma.invoice.create({
+    data: {
+      userId: user5.id,
+      customerId: customer3.id,
+      number: 'INV-2024-010',
+      total: 42000,
+      issuedAt: new Date('2024-12-14'),
+      status: 'paid',
+      items: {
+        create: [
+          { label: 'Prestation de services', quantity: 1, unitPrice: 42000 },
+        ],
+      },
+    },
+  });
+
+  await prisma.invoice.create({
+    data: {
+      userId: user5.id,
+      customerId: customer5.id,
+      number: 'INV-2024-011',
+      total: 28000,
+      issuedAt: new Date('2024-12-15'),
+      status: 'pending',
+      items: {
+        create: [
+          { label: 'Vente de marchandises', quantity: 4, unitPrice: 7000 },
+        ],
+      },
+    },
+  });
+
+  await prisma.invoice.create({
+    data: {
+      userId: user5.id,
+      customerId: customer6.id,
+      number: 'INV-2024-012',
+      total: 65000,
+      issuedAt: new Date('2024-11-10'),
+      status: 'overdue',
+      items: {
+        create: [
+          { label: 'Formation professionnelle', quantity: 1, unitPrice: 65000 },
         ],
       },
     },
@@ -266,6 +464,15 @@ async function main() {
     data: {
       userId: admin.id,
       message: 'Facture INV-2024-002 en attente de paiement',
+      type: 'invoice',
+      read: false,
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: admin.id,
+      message: 'Facture INV-2024-006 en retard de paiement',
       type: 'invoice',
       read: false,
     },
@@ -293,6 +500,43 @@ async function main() {
     data: {
       userId: user3.id,
       message: 'Facture INV-2024-005 en attente de paiement',
+      type: 'invoice',
+      read: false,
+    },
+  });
+
+  // Notifications pour les nouveaux utilisateurs
+  await prisma.notification.create({
+    data: {
+      userId: user4.id,
+      message: 'Nouvelle vente enregistree: 35,000 XOF',
+      type: 'sale',
+      read: false,
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: user4.id,
+      message: 'Facture INV-2024-009 en attente de paiement',
+      type: 'invoice',
+      read: false,
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: user5.id,
+      message: 'Nouvelle vente enregistree: 70,000 XOF',
+      type: 'sale',
+      read: false,
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: user5.id,
+      message: 'Facture INV-2024-012 en retard de paiement',
       type: 'invoice',
       read: false,
     },

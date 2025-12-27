@@ -72,7 +72,10 @@ exports.getMobileMoneyHistory = async (req, res, next) => {
       }
     });
 
-    res.json(transactions);
+    // Filtrer les transactions invalides
+    const validTransactions = transactions.filter(tx => tx && tx.type);
+    
+    res.json(validTransactions);
   } catch (err) {
     logger.error('Erreur historique Mobile Money', { error: err.message });
     next(new AppError(err.message, 500));

@@ -1,81 +1,132 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Toast from './Toast';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/apiInterceptor';
+import { BarChart3, Receipt, Users, Wallet, Bell, Menu, X, Home, FileText, Settings, LogOut, Search } from 'lucide-react';
 
 const links = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/customers', label: 'Clients' },
-  { to: '/transactions', label: 'Transactions' },
-  { to: '/invoices', label: 'Factures' },
-  { to: '/notifications', label: 'Notifications' },
-  { to: '/mobile-money', label: 'Mobile Money' },
+  { to: '/', label: 'Tableau de bord', icon: Home },
+  { to: '/transactions', label: 'Transactions', icon: Receipt },
+  { to: '/invoices', label: 'Factures', icon: FileText },
+  { to: '/customers', label: 'Clients', icon: Users },
+  { to: '/mobile-money', label: 'Mobile Money', icon: Wallet },
 ];
 
 export default function Layout() {
   const { logout, user } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
   const { data } = useQuery<{ unreadCount: number }>({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => (await api.get('/notifications/unread/count')).data,
     refetchInterval: 15000,
   });
-  return (
-    <div className="min-h-screen flex bg-bg text-slate-50">
-      <aside className="w-60 hidden md:flex flex-col gap-2 bg-panel border-r border-slate-800 p-4">
-        <div className="text-xl font-semibold mb-4">Kawari</div>
-        {links.map((l) => (
-          <NavLink
-            key={l.to}
-            to={l.to}
-            end={l.to === '/'}
-            className={({ isActive }) =>
-              `px-3 py-2 rounded-md text-sm ${isActive ? 'bg-primary text-white' : 'text-muted hover:bg-slate-800'}`
-            }
-          >
-            {l.label}
-          </NavLink>
-        ))}
-        <button
-          className="mt-auto px-3 py-2 rounded-md bg-danger/80 hover:bg-danger text-sm"
-          onClick={() => {
-            logout();
-            nav('/login');
-          }}
-        >
-          Déconnexion
-        </button>
-      </aside>
+  
+  // Déterminer la vue active pour la sidebar
+  const getActiveView = () => {
+    const pathname = location.pathname;
+    if (pathname === '/') return 'dashboard';
+    if (pathname.includes('transactions')) return 'transactions';
+    if (pathname.includes('invoices')) return 'invoices';
+    if (pathname.includes('customers')) return 'customers';
+    if (pathname.includes('mobile-money')) return 'mobile-money';
+    return '';
+  };
 
-      <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-panel/70 backdrop-blur">
-          <div className="text-sm text-muted">Kawari Finance</div>
-          <div className="flex items-center gap-3 text-sm text-muted">
-            <div className="relative">
-              <span>Notifications</span>
-              {data?.unreadCount ? (
-                <span className="absolute -top-2 -right-3 bg-primary text-white text-xs px-2 py-0.5 rounded-full">
-                  {data.unreadCount}
-                </span>
-              ) : null}
-            </div>
-            <div className="text-right">
-              <div className="text-slate-100">{user?.name || user?.email || 'Utilisateur'}</div>
-              <div className="text-xs text-muted">{user?.email}</div>
-            </div>
-            <button
-              className="px-3 py-1 rounded-md bg-danger/80 hover:bg-danger text-sm"
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className={`fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-40 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-8">
+            {sidebarOpen && <h1 className="text-2xl font-bold">Kawari</h1>}
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-800 rounded-lg">
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+          
+          <nav className="space-y-2">
+            {links.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                    isActive ? 'bg-green-600' : 'hover:bg-gray-800'
+                  }`
+                }
+              >
+                <item.icon className="w-5 h-5" />
+                {sidebarOpen && <span>{item.label}</span>}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="absolute bottom-6 left-6 right-6 space-y-2">
+            <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors">
+              <Settings className="w-5 h-5" />
+              {sidebarOpen && <span>Paramètres</span>}
+            </button>
+            <button 
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-900 transition-colors text-red-400"
               onClick={() => {
                 logout();
                 nav('/login');
               }}
             >
-              Déconnexion
+              <LogOut className="w-5 h-5" />
+              {sidebarOpen && <span>Déconnexion</span>}
             </button>
           </div>
+        </div>
+      </div>
+      
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {location.pathname === '/' && 'Tableau de bord'}
+                  {location.pathname === '/transactions' && 'Transactions'}
+                  {location.pathname === '/invoices' && 'Factures'}
+                  {location.pathname === '/customers' && 'Clients'}
+                  {location.pathname === '/mobile-money' && 'Mobile Money'}
+                </h2>
+                <p className="text-gray-600 text-sm mt-1">
+                  {location.pathname === '/' && 'Bonjour! Voici vos statistiques du jour'}
+                  {location.pathname === '/transactions' && 'Gérez toutes vos transactions'}
+                  {location.pathname === '/invoices' && 'Gérez vos factures et paiements'}
+                  {location.pathname === '/customers' && 'Gérez votre base de clients'}
+                  {location.pathname === '/mobile-money' && 'Gérez vos comptes Mobile Money'}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                  <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+                </div>
+                <button className="relative p-2 hover:bg-gray-100 rounded-lg">
+                  <Bell className="w-6 h-6 text-gray-600" />
+                  {data?.unreadCount && (
+                    <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {data.unreadCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </header>
-        <main className="p-4 md:p-6 space-y-4">
+
+        <main className="p-6">
           <Outlet />
         </main>
       </div>

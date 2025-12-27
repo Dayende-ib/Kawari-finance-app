@@ -31,8 +31,11 @@ exports.getTransactions = async (req, res, next) => {
       }),
     ]);
 
+    // Filtrer les transactions invalides
+    const validTransactions = transactions.filter(tx => tx && tx.type);
+    
     res.json({
-      data: transactions,
+      data: validTransactions,
       total,
       page,
       limit,
@@ -49,6 +52,13 @@ exports.getTransactionById = async (req, res, next) => {
       where: { id: parseInt(req.params.id) },
     });
     if (!tx || tx.userId !== req.user.id) return next(new AppError('Transaction not found', 404, 'NOT_FOUND'));
+    
+    // Vérifier que la transaction a un type valide
+    if (!tx.type) {
+      logger.warn('Transaction with missing type found', { transactionId: tx.id });
+      return next(new AppError('Transaction has invalid format', 400, 'VALIDATION_ERROR'));
+    }
+    
     res.json(tx);
   } catch (err) {
     next(new AppError(err.message, 500));
@@ -142,7 +152,7 @@ exports.getStatistics = async (req, res, next) => {
       where: { userId: req.user.id },
     });
     const unpaidInvoices = await prisma.invoice.count({
-      where: { userId: req.user.id, status: 'pending' },
+      where: { userId: req.user.id, status: { in: ['pending', 'overdue'] } },
     });
 
     return res.json({
@@ -180,7 +190,13 @@ exports.getMonthlyStats = async (req, res, next) => {
 
     const monthlyMap = {};
 
-    transactions.forEach(({ type, amount, date }) => {
+    transactions.forEach((transaction) => {
+      // Vérifier que la transaction est définie et a les propriétés nécessaires
+      if (!transaction || !transaction.type || !transaction.amount || !transaction.date) {
+        return; // ignorer cette transaction
+      }
+      
+      const { type, amount, date } = transaction;
       const key = new Date(date).toLocaleString('default', { month: 'short', year: 'numeric' });
 
       if (!monthlyMap[key]) {
@@ -215,7 +231,10 @@ exports.getCategoryStats = async (req, res, next) => {
       where: { userId },
       _sum: { amount: true },
     });
-    res.json(categories);
+    
+    // S'assurer que les résultats sont valides
+    const validCategories = categories.filter(cat => cat.type);
+    res.json(validCategories);
   } catch (err) {
     next(new AppError('Server error', 500));
   }
