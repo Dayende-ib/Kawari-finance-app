@@ -20,7 +20,7 @@ export default function Login() {
       await login(email, password);
       nav('/');
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Connexion échouée');
+      setError(err?.data?.message || err?.message || 'Connexion échouée');
     } finally {
       setLoading(false);
     }

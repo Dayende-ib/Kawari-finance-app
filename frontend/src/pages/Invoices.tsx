@@ -27,15 +27,14 @@ export default function Invoices() {
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery<any>({
     queryKey: ['invoices'],
     queryFn: async () => {
-      const response = await api.get('/invoices');
-      // S'assurer que les données sont un tableau
-      return Array.isArray(response.data) ? response.data : [];
+      const data = await api.get('/invoices');
+      return Array.isArray(data) ? data : [];
     },
   });
   
   const { data: statsData } = useQuery<Stats>({
     queryKey: ['invoice-stats'],
-    queryFn: async () => (await api.get('/stats')).data,
+    queryFn: async () => await api.get('/stats'),
   });
 
   const formatCurrency = (amount: number) => {

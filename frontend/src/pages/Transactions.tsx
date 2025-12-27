@@ -31,12 +31,12 @@ export default function Transactions() {
   
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ['transactions'],
-    queryFn: async () => (await api.get('/transactions')).data,
+    queryFn: async () => await api.get('/transactions'),
   });
   
   const { data: statsData } = useQuery<Stats>({
     queryKey: ['transaction-stats'],
-    queryFn: async () => (await api.get('/stats')).data,
+    queryFn: async () => await api.get('/stats'),
   });
 
   const formatCurrency = (amount: number) => {

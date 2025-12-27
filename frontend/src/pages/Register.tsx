@@ -22,7 +22,7 @@ export default function Register() {
       await register({ name, email, password });
       nav('/');
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Inscription échouée');
+      setError(err?.data?.message || err?.message || 'Inscription échouée');
     } finally {
       setLoading(false);
     }

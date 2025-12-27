@@ -1,16 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
-const authMiddleware = require('./src/middlewares/authMiddleware');
-
-const authRoutes = require('./src/routes/authRoutes');
-const customerRoutes = require('./src/routes/customerRoutes');
-const transactionRoutes = require('./src/routes/transactionRoutes');
-const invoiceRoutes = require('./src/routes/invoiceRoutes');
-const notificationRoutes = require('./src/routes/notificationRoutes');
-const transactionController = require('./src/controllers/transactionController');
-const mobileMoneyRoutes = require('./src/routes/mobileMoneyRoutes');
+const authMiddleware = require('./src/simpleRoutes/authMiddlewareSimple');
+const authRoutes = require('./src/simpleRoutes/authRoutes');
+const customerRoutes = require('./src/simpleRoutes/customersRoutes');
+const transactionRoutes = require('./src/simpleRoutes/transactionsRoutes');
+const invoiceRoutes = require('./src/simpleRoutes/invoicesRoutes');
+const statsRoutes = require('./src/simpleRoutes/statsRoutes');
 const logger = require('./src/utils/logger');
 const errorHandler = require('./src/middlewares/errorHandler');
 
@@ -23,19 +21,25 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', authMiddleware, customerRoutes);
 app.use('/api/transactions', authMiddleware, transactionRoutes);
 app.use('/api/invoices', authMiddleware, invoiceRoutes);
-app.use('/api/notifications', authMiddleware, notificationRoutes);
-app.use('/api/mobile-money', authMiddleware, mobileMoneyRoutes);
-
-// Statistiques globales
-app.get('/api/stats', authMiddleware, transactionController.getStatistics);
+app.use('/api/stats', authMiddleware, statsRoutes);
 
 // Global error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+if (require.main === module) {
+  const { connect } = require('./src/mongo');
+  connect().catch((err) => {
+    console.warn('Mongo connect failed:', err.message);
+  });
+
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+}
+
+module.exports = app;

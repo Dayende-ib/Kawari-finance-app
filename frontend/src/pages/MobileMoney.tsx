@@ -28,15 +28,14 @@ export default function MobileMoney() {
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery<MobileMoneyTransaction[]>({
     queryKey: ['mobile-money-transactions'],
     queryFn: async () => {
-      const response = await api.get('/mobile-money/history');
-      // Filtrer les transactions invalides
-      return Array.isArray(response.data) ? response.data.filter(tx => tx) : [];
+      const data = await api.get('/mobile-money/history');
+      return Array.isArray(data) ? data.filter(tx => tx) : [];
     },
   });
   
   const { data: statsData } = useQuery<Stats>({
     queryKey: ['mobile-money-stats'],
-    queryFn: async () => (await api.get('/stats')).data,
+    queryFn: async () => await api.get('/stats'),
   });
 
   const formatCurrency = (amount: number) => {

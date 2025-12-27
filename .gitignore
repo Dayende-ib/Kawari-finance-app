@@ -76,6 +76,7 @@ web_modules/
 # Prisma local database
 /backend/prisma/dev.db
 /backend/prisma/*.db
+/backend/prisma/prisma/*.db
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

@@ -15,7 +15,7 @@ export default function Notifications() {
 
   const { data, isLoading, isError } = useQuery<Notification[]>({
     queryKey: ['notifications'],
-    queryFn: async () => (await api.get('/notifications')).data,
+    queryFn: async () => await api.get('/notifications'),
   });
 
   const markMutation = useMutation({

@@ -2,11 +2,12 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Toast from './Toast';
+import Chatbot from './Chatbot';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/apiInterceptor';
-import { BarChart3, Receipt, Users, Wallet, Bell, Menu, X, Home, FileText, Settings, LogOut, Search } from 'lucide-react';
+import { BarChart3, Receipt, Users, Wallet, Bell, Menu, X, Home, FileText, Settings, LogOut, Search, UserPlus } from 'lucide-react';
 
-const links = [
+const baseLinks = [
   { to: '/', label: 'Tableau de bord', icon: Home },
   { to: '/transactions', label: 'Transactions', icon: Receipt },
   { to: '/invoices', label: 'Factures', icon: FileText },
@@ -14,15 +15,21 @@ const links = [
   { to: '/mobile-money', label: 'Mobile Money', icon: Wallet },
 ];
 
+const adminLinks = [
+  { to: '/sellers', label: 'Vendeurs', icon: UserPlus },
+];
+
 export default function Layout() {
-  const { logout, user } = useAuth();
+  const { logout, user, isAdmin } = useAuth();
   const nav = useNavigate();
   const location = useLocation();
   const { data } = useQuery<{ unreadCount: number }>({
     queryKey: ['notifications', 'unread-count'],
-    queryFn: async () => (await api.get('/notifications/unread/count')).data,
+    queryFn: async () => await api.get('/notifications/unread/count'),
     refetchInterval: 15000,
   });
+  
+  const links = isAdmin ? [...baseLinks, ...adminLinks] : baseLinks;
   
   // Déterminer la vue active pour la sidebar
   const getActiveView = () => {
@@ -32,6 +39,7 @@ export default function Layout() {
     if (pathname.includes('invoices')) return 'invoices';
     if (pathname.includes('customers')) return 'customers';
     if (pathname.includes('mobile-money')) return 'mobile-money';
+    if (pathname.includes('sellers')) return 'sellers';
     return '';
   };
 
@@ -95,6 +103,7 @@ export default function Layout() {
                   {location.pathname === '/invoices' && 'Factures'}
                   {location.pathname === '/customers' && 'Clients'}
                   {location.pathname === '/mobile-money' && 'Mobile Money'}
+                  {location.pathname === '/sellers' && 'Gestion des vendeurs'}
                 </h2>
                 <p className="text-gray-600 text-sm mt-1">
                   {location.pathname === '/' && 'Bonjour! Voici vos statistiques du jour'}
@@ -102,6 +111,7 @@ export default function Layout() {
                   {location.pathname === '/invoices' && 'Gérez vos factures et paiements'}
                   {location.pathname === '/customers' && 'Gérez votre base de clients'}
                   {location.pathname === '/mobile-money' && 'Gérez vos comptes Mobile Money'}
+                  {location.pathname === '/sellers' && 'Créez et gérez vos vendeurs'}
                 </p>
               </div>
               <div className="flex items-center gap-4">
@@ -131,6 +141,7 @@ export default function Layout() {
         </main>
       </div>
       <Toast />
+      <Chatbot />
     </div>
   );
 }

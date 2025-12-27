@@ -24,12 +24,12 @@ export default function Customers() {
   
   const { data: customersData, isLoading: customersLoading } = useQuery<Customer[]>({
     queryKey: ['customers'],
-    queryFn: async () => (await api.get('/customers')).data,
+    queryFn: async () => await api.get('/customers'),
   });
   
   const { data: statsData } = useQuery<Stats>({
     queryKey: ['customer-stats'],
-    queryFn: async () => (await api.get('/stats')).data,
+    queryFn: async () => await api.get('/stats'),
   });
 
   const formatCurrency = (amount: number) => {

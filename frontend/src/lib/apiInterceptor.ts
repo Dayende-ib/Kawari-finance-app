@@ -1,38 +1,47 @@
-import api, { setAuthToken } from './api';
-import { notify } from '../components/Toast';
+const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-const MAX_RETRY = 3;
+const getAuthToken = () => localStorage.getItem('token');
 
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const { response, config } = error;
+export const setAuthToken = (token?: string) => {
+  if (token) localStorage.setItem('token', token);
+  else localStorage.removeItem('token');
+};
 
-    // 401 -> redirect to login
-    if (response?.status === 401) {
-      notify('Session expirée, veuillez vous reconnecter', 'error');
-      window.location.href = '/login';
-      return Promise.reject(error);
-    }
+async function request(path: string, opts: RequestInit = {}) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(opts.headers as Record<string, string> || {}),
+  };
 
-    // Retry for 5xx up to MAX_RETRY
-    const status = response?.status;
-    if (status && status >= 500 && status < 600) {
-      config._retryCount = (config._retryCount || 0) + 1;
-      if (config._retryCount <= MAX_RETRY) {
-        return api(config);
-      }
-    }
+  const token = getAuthToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
 
-    // Show server message if any
-    const msg = response?.data?.message || 'Erreur serveur';
-    if (status === 500 || (status && status >= 400)) {
-      notify(msg, 'error');
-    }
-
-    return Promise.reject(error);
+  const res = await fetch(`${BASE}${path}`, { credentials: 'include', ...opts, headers });
+  const text = await res.text();
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch (e) {
+    data = text;
   }
-);
+
+  if (!res.ok) {
+    const err: any = new Error((data && data.message) || res.statusText || 'Erreur');
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+
+  return data;
+}
+
+const api = {
+  get: (path: string) => request(path, { method: 'GET' }),
+  post: (path: string, body?: any) => request(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  put: (path: string, body?: any) => request(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+  patch: (path: string, body?: any) => request(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
+  delete: (path: string) => request(path, { method: 'DELETE' }),
+  del: (path: string) => request(path, { method: 'DELETE' }),
+};
 
 export default api;
-export { setAuthToken };

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import api, { setAuthToken } from '../lib/apiInterceptor';
 
-type User = { id: number; email: string; name?: string };
+type User = { id: number; email: string; name?: string; role?: 'admin' | 'seller' };
 
 type AuthContextType = {
   user: User | null;
@@ -9,6 +9,8 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   register: (payload: { name: string; email: string; password: string }) => Promise<void>;
   logout: () => void;
+  isAdmin: boolean;
+  isSeller: boolean;
 };
 
 const AuthContext = createContext<AuthContextType>(null as any);
@@ -22,19 +24,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [token]);
 
   const login = async (email: string, password: string) => {
-    const { data } = await api.post('/auth/login', { email, password });
-    setUser(data.user);
-    setToken(data.token);
-    setAuthToken(data.token);
-    localStorage.setItem('token', data.token);
+    const resp = await api.post('/auth/login', { email, password });
+    setUser(resp.user);
+    setToken(resp.token);
+    setAuthToken(resp.token);
+    localStorage.setItem('token', resp.token);
   };
 
   const register = async (payload: { name: string; email: string; password: string }) => {
-    const { data } = await api.post('/auth/register', payload);
-    setUser(data.user);
-    setToken(data.token);
-    setAuthToken(data.token);
-    localStorage.setItem('token', data.token);
+    const resp = await api.post('/auth/register', payload);
+    setUser(resp.user);
+    setToken(resp.token);
+    setAuthToken(resp.token);
+    localStorage.setItem('token', resp.token);
   };
 
   const logout = () => {
@@ -44,7 +46,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('token');
   };
 
-  return <AuthContext.Provider value={{ user, token, login, register, logout }}>{children}</AuthContext.Provider>;
+  const isAdmin = user?.role === 'admin';
+  const isSeller = user?.role === 'seller';
+
+  return (
+    <AuthContext.Provider value={{ user, token, login, register, logout, isAdmin, isSeller }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);

@@ -7,12 +7,18 @@ import Invoices from './pages/Invoices';
 import Transactions from './pages/Transactions';
 import Notifications from './pages/Notifications';
 import MobileMoney from './pages/MobileMoney';
+import Sellers from './pages/Sellers';
 import { useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 
 const Protected = ({ children }: { children: JSX.Element }) => {
   const { token } = useAuth();
   return token ? children : <Navigate to="/login" replace />;
+};
+
+const AdminOnly = ({ children }: { children: JSX.Element }) => {
+  const { token, isAdmin } = useAuth();
+  return token && isAdmin ? children : <Navigate to="/" replace />;
 };
 
 export default function App() {
@@ -35,6 +41,14 @@ export default function App() {
           <Route path="transactions" element={<Transactions />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="mobile-money" element={<MobileMoney />} />
+          <Route
+            path="sellers"
+            element={
+              <AdminOnly>
+                <Sellers />
+              </AdminOnly>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

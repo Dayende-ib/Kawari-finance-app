@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../context/AuthContext';
 import api from '../lib/apiInterceptor';
+import Suggestions from '../components/Suggestions';
+import AdminDashboard from './AdminDashboard';
 import { BarChart3, Receipt, Users, Wallet, Bell, Plus, TrendingUp, TrendingDown, DollarSign, Calendar, Menu, X, Home, FileText, Settings, LogOut, Search, Filter } from 'lucide-react';
 
 interface Stats {
@@ -30,19 +33,38 @@ interface MonthlyData {
   total: number;
 }
 
+interface Suggestion {
+  id: number;
+  type: 'warning' | 'success' | 'info';
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  icon: string;
+}
+
 export default function Dashboard() {
-  // Récupération des données depuis l'API
+  const { isAdmin } = useAuth();
+
+  // Si c'est un admin, afficher le dashboard admin
+  if (isAdmin) {
+    return <AdminDashboard />;
+  }
+
+  // Sinon, afficher le dashboard vendeur normal
+  return <SellerDashboard />;
+}
+
+function SellerDashboard() {
   const { data: statsData, isLoading: statsLoading, isError: statsError } = useQuery<Stats>({
     queryKey: ['stats'],
-    queryFn: async () => (await api.get('/stats')).data,
+    queryFn: async () => await api.get('/stats'),
   });
 
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ['recent-transactions'],
     queryFn: async () => {
-      const response = await api.get('/transactions', { params: { limit: 5 } });
-      // Filtrer les transactions undefined
-      return Array.isArray(response.data) ? response.data.filter(t => t) : [];
+      const response = await api.get('/transactions?limit=5');
+      return Array.isArray(response) ? response.filter(t => t) : [];
     },
   });
 
@@ -51,7 +73,13 @@ export default function Dashboard() {
     monthlyExpenses: MonthlyData[];
   }>({
     queryKey: ['monthly-data'],
-    queryFn: async () => (await api.get('/transactions/monthly')).data,
+    queryFn: async () => await api.get('/transactions/monthly'),
+  });
+
+  const { data: suggestionsData, isLoading: suggestionsLoading } = useQuery<{ suggestions: Suggestion[] }>({
+    queryKey: ['suggestions'],
+    queryFn: async () => await api.get('/suggestions'),
+    refetchInterval: 5 * 60 * 1000, // Refetch toutes les 5 minutes
   });
 
   // Calcul du profit basé sur les données
@@ -260,6 +288,14 @@ export default function Dashboard() {
           <p className="text-3xl font-bold">{formatCurrency(statsData?.balance || 0)}</p>
           <p className="text-sm mt-2 opacity-90">Solde actuel</p>
         </div>
+      </div>
+
+      {/* Suggestions IA */}
+      <div className="mt-6">
+        <Suggestions 
+          suggestions={suggestionsData?.suggestions || []} 
+          isLoading={suggestionsLoading}
+        />
       </div>
     </div>
   );
