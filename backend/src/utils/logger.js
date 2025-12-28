@@ -1,6 +1,9 @@
 const { createLogger, format, transports } = require('winston');
 
-const level = process.env.DEBUG_LEVEL || 'info';
+const level =
+  process.env.LOG_LEVEL ||
+  process.env.DEBUG_LEVEL ||
+  (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
 
 const logger = createLogger({
   level,

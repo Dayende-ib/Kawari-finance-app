@@ -17,10 +17,25 @@ const errorHandler = require('./src/middlewares/errorHandler');
 const { adminOrSeller } = require('./src/middlewares/roleMiddleware');
 
 const app = express();
-const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+const isAllowedOrigin = (origin, callback) => {
+  if (!origin || allowedOrigins.length === 0) return callback(null, true);
+  if (allowedOrigins.includes('*')) return callback(null, true);
+  if (allowedOrigins.includes(origin)) return callback(null, true);
+  return callback(new Error('CORS not allowed'));
+};
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: isAllowedOrigin,
     credentials: true,
   })
 );

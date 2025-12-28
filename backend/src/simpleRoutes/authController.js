@@ -14,10 +14,13 @@ const buildRefreshPayload = (userId) => ({ userId, tokenId: randomUUID() });
 
 const getRefreshCookieOptions = () => {
   const maxAge = Number.parseInt(process.env.JWT_REFRESH_MAX_AGE_MS || '', 10);
+  const sameSite = (process.env.COOKIE_SAMESITE || 'lax').toLowerCase();
+  const secureFromEnv = process.env.COOKIE_SECURE === 'true';
+  const secure = secureFromEnv || process.env.NODE_ENV === 'production' || sameSite === 'none';
   const options = {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite,
+    secure,
   };
   if (Number.isFinite(maxAge) && maxAge > 0) options.maxAge = maxAge;
   return options;

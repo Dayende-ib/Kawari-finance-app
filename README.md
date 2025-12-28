@@ -294,6 +294,34 @@ npm run preview
 
 Servez `frontend/dist/` avec un serveur web statique (Nginx, Vercel, etc.).
 
+## Production
+
+### Backend
+
+1. Copiez `env.example` vers `.env` et ajustez les variables:
+   - `NODE_ENV=production`
+   - `FRONTEND_URL=https://votre-domaine-frontend` (liste possible: valeurs separees par des virgules)
+   - `COOKIE_SAMESITE=none` si front et back sont sur des domaines differents
+   - `COOKIE_SECURE=true` si HTTPS est actif (recommande en production)
+2. Installez et lancez:
+   ```powershell
+   cd backend
+   npm install
+   npm run start
+   ```
+
+### Frontend
+
+1. Definissez l'API:
+   - `VITE_API_BASE_URL=https://votre-domaine-backend/api`
+2. Build et previsualisation locale:
+   ```powershell
+   cd frontend
+   npm install
+   npm run build
+   npm run preview
+   ```
+
 ## 🐛 Troubleshooting
 
 | Problème | Solution |
