@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Facture {{invoiceNumber}}</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 36px; color: #0f172a; background: #f8fafc; }
+      .card { background: #fff; border-radius: 16px; padding: 28px; border: 1px solid #e2e8f0; }
+      header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+      h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
+      .muted { color: #64748b; font-size: 12px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+      th, td { padding: 10px 12px; text-align: left; }
+      th { background: #f1f5f9; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+      tr + tr td { border-top: 1px solid #e2e8f0; }
+      .totals { margin-top: 20px; display: flex; justify-content: flex-end; font-size: 16px; }
+      .total-box { background: #0f172a; color: #fff; padding: 10px 16px; border-radius: 999px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <header>
+        <div>
+          <h1>Facture {{invoiceNumber}}</h1>
+          <div class="muted">Émise le {{issuedAt}}</div>
+          <div class="muted">Échéance {{dueAt}}</div>
+        </div>
+        <div>
+          <strong>{{customerName}}</strong><br />
+          <span class="muted">{{customerEmail}}</span>
+        </div>
+      </header>
+      <table>
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th>Qté</th>
+            <th>PU ({{currency}})</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{itemsRows}}
+        </tbody>
+      </table>
+      <div class="totals">
+        <div class="total-box">Total: {{total}} {{currency}}</div>
+      </div>
+    </div>
+  </body>
+</html>

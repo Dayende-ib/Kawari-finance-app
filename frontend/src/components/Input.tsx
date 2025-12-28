@@ -13,7 +13,7 @@ export default function Input({ label, hint, error, className, ...rest }: Props)
       {label && <span>{label}</span>}
       <input
         className={clsx(
-          'rounded-md bg-slate-800 px-3 py-2 text-slate-50 border border-transparent focus:border-primary transition',
+          'rounded-md bg-white px-3 py-2 text-gray-900 border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 transition',
           error && 'border-danger',
           className
         )}

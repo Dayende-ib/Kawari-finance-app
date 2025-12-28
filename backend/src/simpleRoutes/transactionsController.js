@@ -7,14 +7,16 @@ const buildUserFilter = (req) =>
 
 exports.list = async (req, res, next) => {
   try {
-    const rows = await Transaction.find(buildUserFilter(req)).sort({ date: -1, _id: -1 }).lean();
+    const rows = await Transaction.find(buildUserFilter(req))
+      .sort({ date: -1, _id: -1 })
+      .lean();
     res.json(rows);
   } catch (err) { next(err); }
 };
 
 exports.create = async (req, res, next) => {
   try {
-    const { customerId, type, amount, currency, date, description, paymentMethod, category } = req.body;
+    const { customerName, type, amount, currency, date, description, paymentMethod, category } = req.body;
     if (!type || amount == null) return res.status(400).json({ message: 'Missing fields' });
     const amountValue = Number(amount);
     if (!Number.isFinite(amountValue)) return res.status(400).json({ message: 'Invalid amount' });
@@ -24,7 +26,7 @@ exports.create = async (req, res, next) => {
     const tx = await Transaction.create({
       companyId: getCompanyId(req),
       userId: req.user.id,
-      customerId: customerId || null,
+      customerName: customerName ? String(customerName).trim() : null,
       type,
       amount: amountValue,
       currency: currency || 'XOF',
@@ -54,5 +56,40 @@ exports.remove = async (req, res, next) => {
     const row = await Transaction.findOneAndDelete({ _id: id, ...buildUserFilter(req) });
     if (!row) return res.status(404).json({ message: 'Transaction not found' });
     res.json({ message: 'Deleted' });
+  } catch (err) { next(err); }
+};
+
+exports.update = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid transaction id' });
+
+    const { customerName, type, amount, currency, date, description, paymentMethod, category } = req.body;
+    const update = { updatedAt: new Date() };
+
+    if (type != null) update.type = type;
+    if (amount != null) {
+      const amountValue = Number(amount);
+      if (!Number.isFinite(amountValue)) return res.status(400).json({ message: 'Invalid amount' });
+      update.amount = amountValue;
+    }
+    if (currency != null) update.currency = currency;
+    if (date != null) {
+      const parsedDate = new Date(date);
+      if (Number.isNaN(parsedDate.getTime())) return res.status(400).json({ message: 'Invalid date' });
+      update.date = parsedDate;
+    }
+    if (description !== undefined) update.description = description || null;
+    if (paymentMethod !== undefined) update.paymentMethod = paymentMethod || null;
+    if (category !== undefined) update.category = category || null;
+    if (customerName !== undefined) update.customerName = customerName ? String(customerName).trim() : null;
+
+    const row = await Transaction.findOneAndUpdate(
+      { _id: id, ...buildUserFilter(req) },
+      update,
+      { new: true }
+    ).lean();
+    if (!row) return res.status(404).json({ message: 'Transaction not found' });
+    res.json(row);
   } catch (err) { next(err); }
 };

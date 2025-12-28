@@ -12,7 +12,7 @@ export default function PasswordStrengthMeter({ value }: { value: string }) {
 
   return (
     <div className="space-y-2">
-      <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+      <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
         <div
           className={`h-full transition-all ${percent < 60 ? 'bg-danger' : percent < 100 ? 'bg-warning' : 'bg-success'}`}
           style={{ width: `${percent}%` }}

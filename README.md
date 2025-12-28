@@ -335,3 +335,17 @@ Pour problèmes ou questions, consultez les logs :
 ---
 
 **Refonte complétée le 27 décembre 2025** ✨
+
+
+## Updates (2025-12)
+
+- Register payload now supports companyName: {"name":"John","companyName":"Acme SARL","email":"john@example.com","password":"Password123!"}
+- Invoice versions: GET /api/invoices/:id/versions
+- Suggestions endpoints: GET /api/suggestions, GET /api/suggestions/admin
+- Chatbot endpoints: GET /api/chatbot/conversation, POST /api/chatbot/message
+- Invoice versions stored in DB (v1, v2, v3). UI shows version badge.
+- Create invoice from sale directly in Transactions list.
+
+## Troubleshooting (Invoice number index)
+
+If you see E11000 duplicate key error on invoices number: null, restart backend so the index is rebuilt as sparse.

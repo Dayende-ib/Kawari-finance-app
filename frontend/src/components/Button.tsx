@@ -10,7 +10,7 @@ export default function Button({ variant = 'primary', loading, className, childr
   const variants: Record<string, string> = {
     primary: 'bg-primary text-white hover:brightness-110 disabled:opacity-60',
     secondary: 'bg-secondary text-white hover:brightness-110 disabled:opacity-60',
-    ghost: 'bg-slate-800 text-slate-100 hover:bg-slate-700 disabled:opacity-60',
+    ghost: 'bg-gray-100 text-gray-800 hover:bg-gray-200 disabled:opacity-60',
   };
 
   return (

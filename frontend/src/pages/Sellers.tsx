@@ -87,11 +87,11 @@ export default function Sellers() {
   return (
     <div className="space-y-6">
       {/* En-tête avec bouton d'ajout */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des vendeurs</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des vendeurs</h1>
         <Button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+          className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           Ajouter un vendeur
@@ -103,11 +103,11 @@ export default function Sellers() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">
+              <h2 className="text-xl font-bold text-gray-900">
                 {selectedSeller ? 'Modifier le vendeur' : 'Ajouter un vendeur'}
               </h2>
               <button onClick={handleCloseModal} className="p-1 hover:bg-gray-100 rounded">
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
@@ -138,7 +138,7 @@ export default function Sellers() {
                 <Button
                   type="button"
                   onClick={handleCloseModal}
-                  className="bg-gray-300 hover:bg-gray-400"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-900"
                 >
                   Annuler
                 </Button>
@@ -166,7 +166,7 @@ export default function Sellers() {
         ) : (
           sellers.map((seller) => (
             <Card key={seller.id} className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900">{seller.name}</h3>
                   <p className="text-sm text-gray-500">{seller.email}</p>
@@ -174,7 +174,7 @@ export default function Sellers() {
                     Créé le {new Date(seller.createdAt).toLocaleDateString('fr-FR')}
                   </p>
                   {seller.stats && (
-                    <div className="grid grid-cols-4 gap-4 mt-3 text-xs">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-3 text-xs">
                       <div>
                         <p className="text-gray-600">Ventes</p>
                         <p className="font-semibold text-green-600">
@@ -208,7 +208,7 @@ export default function Sellers() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 ml-4">
+                <div className="flex gap-2 sm:ml-4">
                   <button
                     onClick={() => handleEdit(seller)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

@@ -15,11 +15,10 @@ exports.list = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const { name, email, phone } = req.body;
-    if (!name) return res.status(400).json({ message: 'Name required' });
     const customer = await Customer.create({
       companyId: getCompanyId(req),
       userId: req.user.id,
-      name,
+      name: name || null,
       email: email || null,
       phone: phone || null,
     });
@@ -44,7 +43,7 @@ exports.update = async (req, res, next) => {
     if (!isValidObjectId(id)) return res.status(400).json({ message: 'Invalid customer id' });
     const row = await Customer.findOneAndUpdate(
       { _id: id, ...buildUserFilter(req) },
-      { name, email, phone, updatedAt: new Date() },
+      { name: name || null, email: email || null, phone: phone || null, updatedAt: new Date() },
       { new: true }
     ).lean();
     if (!row) return res.status(404).json({ message: 'Customer not found' });

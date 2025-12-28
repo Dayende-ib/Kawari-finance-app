@@ -34,41 +34,43 @@ export default function Notifications() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Notifications</h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-semibold">Notifications</h2>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+          Page {page}/
+          {Math.max(1, Math.ceil((data?.length || 0) / pageSize))}
+          <Button variant="ghost" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+            Précédent
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={page >= Math.max(1, Math.ceil((data?.length || 0) / pageSize))}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Suivant
+          </Button>
+        </div>
+      </div>
       {isLoading && <Skeleton rows={5} />}
       {isError && <div className="text-danger">Erreur de chargement.</div>}
-      <div className="flex items-center gap-2 text-sm text-muted">
-        Page {page}/
-        {Math.max(1, Math.ceil((data?.length || 0) / pageSize))}
-        <Button variant="ghost" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-          Précédent
-        </Button>
-        <Button
-          variant="ghost"
-          disabled={page >= Math.max(1, Math.ceil((data?.length || 0) / pageSize))}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Suivant
-        </Button>
-      </div>
       <div className="space-y-2">
         {data
           ?.slice((page - 1) * pageSize, page * pageSize)
           .map((n) => (
-            <Card key={n.id} className="flex items-center justify-between">
+            <Card key={n.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="font-medium">{n.message}</div>
                 <div className="text-xs text-muted">{n.type}</div>
               </div>
-            <div className="flex gap-2">
-              {!n.read && (
-                <Button variant="ghost" onClick={() => markMutation.mutate(n.id)}>
-                  Marquer lu
+              <div className="flex flex-wrap gap-2">
+                {!n.read && (
+                  <Button variant="ghost" onClick={() => markMutation.mutate(n.id)}>
+                    Marquer lu
+                  </Button>
+                )}
+                <Button variant="ghost" onClick={() => deleteMutation.mutate(n.id)}>
+                  Supprimer
                 </Button>
-              )}
-              <Button variant="ghost" onClick={() => deleteMutation.mutate(n.id)}>
-                Supprimer
-              </Button>
               </div>
             </Card>
           ))}

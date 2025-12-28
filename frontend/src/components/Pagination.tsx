@@ -11,11 +11,11 @@ export default function Pagination({ page, pages, onChange }: Props) {
   return (
     <div className="flex items-center gap-2 text-sm text-muted">
       Page {page}/{pages || 1}
-      <button className="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 disabled:opacity-60" disabled={page <= 1} onClick={prev}>
+      <button className="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 disabled:opacity-60" disabled={page <= 1} onClick={prev}>
         Précédent
       </button>
       <button
-        className="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 disabled:opacity-60"
+        className="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 disabled:opacity-60"
         disabled={page >= pages}
         onClick={next}
       >

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/apiInterceptor';
+import { notify } from '../components/Toast';
 import { CreditCard, ArrowUpRight, Send, Wallet, FileText } from 'lucide-react';
 
 interface MobileMoneyTransaction {
@@ -25,6 +26,7 @@ interface Stats {
 }
 
 export default function MobileMoney() {
+  const historyRef = useRef<HTMLDivElement | null>(null);
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery<MobileMoneyTransaction[]>({
     queryKey: ['mobile-money-transactions'],
     queryFn: async () => {
@@ -56,7 +58,7 @@ export default function MobileMoney() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
           <CreditCard className="w-8 h-8 mb-3 opacity-80" />
           <h4 className="text-sm font-medium mb-1 opacity-90">Orange Money</h4>
@@ -79,8 +81,8 @@ export default function MobileMoney() {
 
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h3 className="text-lg font-bold text-gray-900 mb-6">Actions rapides</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button className="p-6 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button className="p-6 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all text-left" onClick={() => notify('Fonctionnalit? en cours de d?ploiement')}>
             <div className="flex items-center gap-4">
               <div className="p-3 bg-green-100 rounded-lg">
                 <ArrowUpRight className="w-6 h-6 text-green-600" />
@@ -91,7 +93,7 @@ export default function MobileMoney() {
               </div>
             </div>
           </button>
-          <button className="p-6 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left">
+          <button className="p-6 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left" onClick={() => notify('Fonctionnalit? en cours de d?ploiement')}>
             <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-100 rounded-lg">
                 <Send className="w-6 h-6 text-blue-600" />
@@ -102,7 +104,7 @@ export default function MobileMoney() {
               </div>
             </div>
           </button>
-          <button className="p-6 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left">
+          <button className="p-6 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left" onClick={() => notify('Fonctionnalit? en cours de d?ploiement')}>
             <div className="flex items-center gap-4">
               <div className="p-3 bg-purple-100 rounded-lg">
                 <Wallet className="w-6 h-6 text-purple-600" />
@@ -113,7 +115,7 @@ export default function MobileMoney() {
               </div>
             </div>
           </button>
-          <button className="p-6 border-2 border-gray-200 rounded-xl hover:border-orange-500 hover:bg-orange-50 transition-all text-left">
+          <button className="p-6 border-2 border-gray-200 rounded-xl hover:border-orange-500 hover:bg-orange-50 transition-all text-left" onClick={() => historyRef.current?.scrollIntoView({ behavior: 'smooth' })}>
             <div className="flex items-center gap-4">
               <div className="p-3 bg-orange-100 rounded-lg">
                 <FileText className="w-6 h-6 text-orange-600" />
@@ -127,7 +129,7 @@ export default function MobileMoney() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100" ref={historyRef}>
         <div className="p-6 border-b">
           <h3 className="text-lg font-bold text-gray-900">Transactions récentes Mobile Money</h3>
         </div>
@@ -136,7 +138,7 @@ export default function MobileMoney() {
             <div className="p-6 text-center text-gray-500">Chargement...</div>
           ) : transactionsData && transactionsData.length > 0 ? (
             transactionsData.map((tx) => (
-              <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+              <div key={tx.id} className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50">
                 <div className="flex items-center gap-4">
                   <div className={`p-2 rounded-lg ${tx.amount > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
                     {tx.amount > 0 ? <ArrowUpRight className="w-5 h-5 text-green-600" /> : <Send className="w-5 h-5 text-red-600" />}

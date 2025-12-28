@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/apiInterceptor';
@@ -43,7 +44,11 @@ interface Suggestion {
 }
 
 export default function Dashboard() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSuperAdmin } = useAuth();
+
+  if (isSuperAdmin) {
+    return <Navigate to="/platform" replace />;
+  }
 
   // Si c'est un admin, afficher le dashboard admin
   if (isAdmin) {
@@ -55,6 +60,7 @@ export default function Dashboard() {
 }
 
 function SellerDashboard() {
+  const navigate = useNavigate();
   const { data: statsData, isLoading: statsLoading, isError: statsError } = useQuery<Stats>({
     queryKey: ['stats'],
     queryFn: async () => await api.get('/stats'),
@@ -118,12 +124,7 @@ function SellerDashboard() {
     </div>
   );
 
-  const TransactionItem = ({ transaction }: { transaction?: Transaction }) => {
-    // Récupérer le client si customerId existe
-    const getClientName = () => {
-      return transaction?.customerId ? `Client ${transaction.customerId}` : 'Aucun client';
-    };
-
+  const TransactionItem = ({ transaction, displayName }: { transaction?: Transaction; displayName: string }) => {
     return (
       <div className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
         <div className="flex items-center gap-4">
@@ -135,7 +136,7 @@ function SellerDashboard() {
             )}
           </div>
           <div>
-            <p className="font-medium text-gray-900">{transaction ? getClientName() : 'Transaction inconnue'}</p>
+            <p className="font-medium text-gray-900">{transaction ? displayName : 'Transaction inconnue'}</p>
             <p className="text-sm text-gray-500">{transaction?.date ? new Date(transaction.date).toLocaleDateString('fr-FR') : ''}</p>
           </div>
         </div>
@@ -146,11 +147,12 @@ function SellerDashboard() {
           <span className={`text-xs px-2 py-1 rounded-full ${
             transaction?.type === 'sale' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
           }`}>
-            {transaction?.type === 'sale' ? 'Vente' : transaction?.type === 'expense' ? 'Dépense' : 'Inconnu'}</span>
+            {transaction?.type === 'sale' ? 'Vente' : transaction?.type === 'expense' ? 'D?pense' : 'Inconnu'}</span>
         </div>
       </div>
     );
   };
+
 
   return (
     <div className="p-6">
@@ -248,18 +250,39 @@ function SellerDashboard() {
 
         {/* Recent Transactions */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Transactions récentes</h3>
-            <button className="text-sm text-green-600 hover:text-green-700 font-medium">
-              Voir tout
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h3 className="text-lg font-bold text-gray-900">Transactions r?centes</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 font-medium"
+                onClick={() => navigate('/transactions', { state: { openModal: 'sale' } })}
+              >
+                Ajouter vente
+              </button>
+              <button
+                className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 font-medium"
+                onClick={() => navigate('/transactions', { state: { openModal: 'expense' } })}
+              >
+                Ajouter depense
+              </button>
+              <button
+                className="text-sm text-green-600 hover:text-green-700 font-medium"
+                onClick={() => navigate('/transactions')}
+              >
+                Voir tout
+              </button>
+            </div>
           </div>
           <div className="space-y-2">
             {transactionsLoading ? (
               <div className="p-4 text-center text-gray-500">Chargement...</div>
             ) : transactionsData && transactionsData.length > 0 ? (
               transactionsData.map((transaction) => (
-                <TransactionItem key={transaction.id} transaction={transaction} />
+                <TransactionItem
+                  key={transaction.id}
+                  transaction={transaction}
+                  displayName={`${transaction.type === 'expense' ? 'depense' : 'vente'} ${String(transaction.id ?? '').trim() || 'N/A'}`}
+                />
               ))
             ) : (
               <div className="p-4 text-center text-gray-500">Aucune transaction récente</div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, X } from 'lucide-react';
+import { MessageCircle, Mic, Send, X } from 'lucide-react';
 import api from '../lib/apiInterceptor';
 import Card from './Card';
 
@@ -90,6 +90,10 @@ export default function Chatbot() {
     'Combien de factures impayées?',
   ];
 
+  const handleQuickSuggestion = (suggestion: string) => {
+    setInput(suggestion);
+  };
+
   return (
     <>
       {/* Bouton flottant */}
@@ -103,7 +107,7 @@ export default function Chatbot() {
 
       {/* Fenêtre de chat */}
       {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-96 max-h-96 flex flex-col shadow-xl z-50">
+        <Card className="fixed bottom-24 right-6 w-96 h-[520px] max-h-[80vh] flex flex-col shadow-xl z-50">
           {/* En-tête */}
           <div className="bg-green-600 text-white p-4 rounded-t-lg flex justify-between items-center">
             <h3 className="font-semibold">Assistant Financier</h3>
@@ -124,7 +128,7 @@ export default function Chatbot() {
                   {quickSuggestions.map((suggestion) => (
                     <button
                       key={suggestion}
-                      onClick={() => setInput(suggestion)}
+                      onClick={() => handleQuickSuggestion(suggestion)}
                       className="w-full text-left p-2 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors text-gray-700"
                     >
                       {suggestion}
@@ -164,27 +168,46 @@ export default function Chatbot() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <form
-            onSubmit={handleSendMessage}
-            className="border-t border-gray-200 p-3 flex gap-2"
-          >
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Posez une question..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-              disabled={isLoading}
-            />
-            <button
-              type="submit"
-              disabled={isLoading || !input.trim()}
-              className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-          </form>
+          <div className="border-t border-gray-200 p-3 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {quickSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => handleQuickSuggestion(suggestion)}
+                  className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={handleSendMessage} className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Posez une question..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm text-gray-700"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                disabled
+                title="Micro non fonctionnel pour le moment"
+                className="p-2 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed"
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </form>
+            <p className="text-xs text-gray-400">Micro: non fonctionnel pour le moment.</p>
+          </div>
         </Card>
       )}
     </>

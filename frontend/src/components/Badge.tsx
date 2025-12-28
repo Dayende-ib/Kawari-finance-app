@@ -7,7 +7,7 @@ const toneToClass: Record<string, string> = {
   secondary: 'bg-secondary/15 text-secondary',
   warning: 'bg-warning/15 text-warning',
   danger: 'bg-danger/15 text-danger',
-  muted: 'bg-slate-700 text-muted',
+  muted: 'bg-gray-200 text-gray-700',
 };
 
 export default function Badge({ tone = 'primary', children }: Props) {

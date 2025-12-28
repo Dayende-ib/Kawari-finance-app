@@ -8,7 +8,7 @@ const toneToClass = {
 
 export default function StatTile({ label, value, suffix, tone = 'primary' }: Props) {
   return (
-    <div className="bg-panel rounded-lg p-4 shadow-card border border-slate-800">
+    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
       <div className="text-sm text-muted mb-1">{label}</div>
       <div className="text-2xl font-semibold flex items-baseline gap-2">
         <span>{value.toLocaleString('fr-FR')}</span>

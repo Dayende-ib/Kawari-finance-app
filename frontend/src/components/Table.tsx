@@ -2,9 +2,9 @@ type Col<T> = { header: string; render: (row: T) => React.ReactNode };
 
 export default function Table<T>({ columns, data }: { columns: Col<T>[]; data: T[] }) {
   return (
-    <div className="overflow-auto rounded-lg border border-slate-800">
+    <div className="overflow-auto rounded-lg border border-gray-200">
       <table className="min-w-full text-sm">
-        <thead className="bg-slate-900 text-muted">
+        <thead className="bg-gray-50 text-gray-600">
           <tr>
             {columns.map((col, i) => (
               <th key={i} className="text-left px-3 py-2 font-medium">
@@ -15,7 +15,7 @@ export default function Table<T>({ columns, data }: { columns: Col<T>[]; data: T
         </thead>
         <tbody className="divide-y divide-slate-800">
           {data.map((row, idx) => (
-            <tr key={idx} className="hover:bg-slate-900/60">
+            <tr key={idx} className="hover:bg-gray-50">
               {columns.map((col, i) => (
                 <td key={i} className="px-3 py-2">
                   {col.render(row)}

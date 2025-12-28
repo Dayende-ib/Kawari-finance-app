@@ -4,6 +4,7 @@ const TransactionSchema = new Schema({
   companyId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
+  customerName: String,
   type: String,
   amount: Number,
   currency: { type: String, default: 'XOF' },

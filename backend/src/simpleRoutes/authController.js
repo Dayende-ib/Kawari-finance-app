@@ -25,8 +25,9 @@ const getRefreshCookieOptions = () => {
 
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, companyName, email, password } = req.body;
     if (!email || !password) throw new AppError('Email and password required', 400, 'VALIDATION_ERROR');
+    if (!companyName) throw new AppError('Company name required', 400, 'VALIDATION_ERROR');
     if (!validatePassword(password)) throw new AppError('Password does not meet policy requirements', 400, 'WEAK_PASSWORD');
 
     const normalizedEmail = normalizeEmail(email);
@@ -38,6 +39,7 @@ exports.register = async (req, res, next) => {
     const user = await User.create({
       _id: companyId,
       name: name || '',
+      companyName: companyName || '',
       email: normalizedEmail,
       passwordHash,
       role: 'admin',
@@ -51,7 +53,16 @@ exports.register = async (req, res, next) => {
     await RefreshToken.create({ token: refreshToken, userId: user._id, expiresAt: decoded.exp ? new Date(decoded.exp * 1000) : null });
 
     res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
-    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role }, token: accessToken });
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        companyName: user.companyName,
+        email: user.email,
+        role: user.role,
+      },
+      token: accessToken,
+    });
   } catch (err) {
     next(err);
   }
@@ -103,7 +114,16 @@ exports.login = async (req, res, next) => {
     await RefreshToken.create({ token: refreshToken, userId: user._id, expiresAt: decoded.exp ? new Date(decoded.exp * 1000) : null });
 
     res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
-    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role }, token: accessToken });
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        companyName: user.companyName,
+        email: user.email,
+        role: user.role,
+      },
+      token: accessToken,
+    });
   } catch (err) {
     next(err);
   }

@@ -26,7 +26,7 @@ const errorHandler = (err, req, res, next) => {
     details = err.details;
   }
   // Erreurs Prisma
-  else if (err.code && err.code.startsWith('P')) {
+  else if (typeof err.code === 'string' && err.code.startsWith('P')) {
     statusCode = 400;
     code = 'DATABASE_ERROR';
     message = 'Database operation failed';

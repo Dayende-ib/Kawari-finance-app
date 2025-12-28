@@ -14,6 +14,18 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
+const superAdminOnly = (req, res, next) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  if (req.user.role !== 'super_admin') {
+    return next(new AppError('Cette action est r\u00e9serv\u00e9e au super administrateur', 403, 'FORBIDDEN'));
+  }
+
+  next();
+};
+
 const sellerOnly = (req, res, next) => {
   if (!req.user || !req.user.id) {
     return res.status(401).json({ message: 'Unauthorized' });
@@ -38,4 +50,4 @@ const adminOrSeller = (req, res, next) => {
   next();
 };
 
-module.exports = { adminOnly, sellerOnly, adminOrSeller };
+module.exports = { adminOnly, sellerOnly, adminOrSeller, superAdminOnly };

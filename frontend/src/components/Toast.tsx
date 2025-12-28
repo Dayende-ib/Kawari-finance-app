@@ -24,8 +24,8 @@ export default function Toast() {
       {items.map((t) => (
         <div
           key={t.id}
-          className={`px-4 py-2 rounded-lg shadow-card ${
-            t.tone === 'error' ? 'bg-danger/90 text-white' : 'bg-panel border border-slate-800'
+          className={`px-4 py-2 rounded-lg shadow-sm ${
+            t.tone === 'error' ? 'bg-danger/90 text-white' : 'bg-white border border-gray-200'
           }`}
         >
           {t.message}
