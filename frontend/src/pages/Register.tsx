@@ -33,7 +33,7 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <form onSubmit={onSubmit} className="w-full max-w-md bg-white p-8 rounded-lg shadow-sm space-y-4 border border-gray-200">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Creer un compte</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Creer un compte</h1>
           <p className="text-sm text-gray-600">Respecter les criteres de mot de passe ci-dessous.</p>
         </div>
 
