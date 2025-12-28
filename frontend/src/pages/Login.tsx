@@ -30,7 +30,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <form onSubmit={onSubmit} className="w-full max-w-md bg-white p-8 rounded-lg shadow-sm space-y-4 border border-gray-200">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Kawari Finance</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Kawari Finance</h1>
           <p className="text-sm text-gray-600">Connectez-vous pour acceder au tableau de bord.</p>
         </div>
 
