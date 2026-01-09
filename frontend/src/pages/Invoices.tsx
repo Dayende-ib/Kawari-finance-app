@@ -14,6 +14,8 @@ interface CustomerRef {
   email?: string;
 }
 
+type Customer = CustomerRef;
+
 interface Invoice {
   id?: string;
   _id?: string;
@@ -180,6 +182,7 @@ export default function Invoices() {
     setFormData({
       number: '',
       customerId: '',
+      customerName: '',
       total: '',
       issuedAt: new Date().toISOString().split('T')[0],
       dueAt: '',
@@ -521,7 +524,7 @@ export default function Invoices() {
                   value={formData.customerId}
                   onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
                 >
-                  <option value="">Selectionner un client</option>
+                  <option value="">Sélectionner un client</option>
                   {customersData.map((customer) => {
                     const id = customer._id || customer.id || '';
                     const label = customer.name || customer.email || id;
@@ -677,7 +680,7 @@ export default function Invoices() {
                 </div>
               </div>
             ) : (
-              <div className="text-sm text-gray-500">Aucune version precedente.</div>
+              <div className="text-sm text-gray-500">Aucune version précédente.</div>
             )}
           </Card>
         </div>

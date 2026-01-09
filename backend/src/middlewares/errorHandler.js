@@ -2,7 +2,7 @@ const logger = require('../utils/logger');
 
 /**
  * Middleware de gestion centralisée des erreurs
- * Tout les contrôleurs doivent passer les erreurs à next()
+ * Tous les contrôleurs doivent passer les erreurs à next()
  */
 const errorHandler = (err, req, res, next) => {
   // Déterminer le code d'erreur et le statut

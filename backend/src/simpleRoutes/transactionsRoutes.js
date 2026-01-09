@@ -5,6 +5,7 @@ const auth = require('./authMiddlewareSimple');
 
 router.get('/', auth, ctrl.list);
 router.post('/', auth, ctrl.create);
+router.get('/monthly', auth, ctrl.monthly);
 router.get('/:id', auth, ctrl.get);
 router.put('/:id', auth, ctrl.update);
 router.delete('/:id', auth, ctrl.remove);

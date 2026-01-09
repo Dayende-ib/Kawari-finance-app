@@ -51,6 +51,12 @@ export default function Layout() {
   };
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navItemClass = (isActive: boolean) =>
+    `w-full flex items-center ${sidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-3 rounded-xl transition-all border-l-2 ${
+      isActive
+        ? 'border-emerald-400 bg-emerald-500/15 text-emerald-100 shadow-lg shadow-emerald-500/10'
+        : 'border-transparent text-slate-200 hover:bg-white/5 hover:text-white'
+    }`;
 
   useEffect(() => {
     const handleResize = () => {
@@ -71,28 +77,40 @@ export default function Layout() {
         />
       )}
       <div
-        className={`fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-40 ${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} lg:w-64`}
+        className={`fixed left-0 top-0 h-full bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white transition-all duration-300 z-40 border-r border-white/5 shadow-2xl shadow-black/40 ${
+          sidebarOpen ? 'w-64 lg:w-64' : 'w-20 lg:w-20'
+        } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            {sidebarOpen && <h1 className="text-2xl font-bold">Kawari</h1>}
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-800 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-slate-900 font-bold flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                K
+              </div>
+              {sidebarOpen && (
+                <div className="leading-tight">
+                  <h1 className="text-lg font-semibold">Kawari</h1>
+                  <p className="text-xs text-slate-400">Finance</p>
+                </div>
+              )}
+            </div>
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-white/10 rounded-lg">
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
           
-          <nav className="space-y-2">
+          {sidebarOpen && (
+            <div className="px-3 text-[11px] uppercase tracking-[0.2em] text-slate-500">
+              Navigation
+            </div>
+          )}
+          <nav className="space-y-2 mt-3">
             {links.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) =>
-                  `w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                    isActive ? 'bg-green-600' : 'hover:bg-gray-800'
-                  }`
-                }
+                title={item.label}
+                className={({ isActive }) => navItemClass(isActive)}
               >
                 <item.icon className="w-5 h-5" />
                 {sidebarOpen && <span>{item.label}</span>}
@@ -100,20 +118,18 @@ export default function Layout() {
             ))}
           </nav>
 
-          <div className="absolute bottom-6 left-6 right-6 space-y-2">
+          <div className="absolute bottom-6 left-6 right-6 space-y-2 border-t border-white/10 pt-4">
             <NavLink
               to="/settings"
-              className={({ isActive }) =>
-                `w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                  isActive ? 'bg-green-600' : 'hover:bg-gray-800'
-                }`
-              }
+              title="Parametres"
+              className={({ isActive }) => navItemClass(isActive)}
             >
               <Settings className="w-5 h-5" />
               {sidebarOpen && <span>Parametres</span>}
             </NavLink>
             <button 
-              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-900 transition-colors text-red-400"
+              className={`w-full flex items-center ${sidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-3 rounded-xl transition-colors text-red-300 hover:text-red-200 hover:bg-red-500/10 border-l-2 border-transparent`}
+              title="Deconnexion"
               onClick={() => {
                 logout();
                 nav('/login');

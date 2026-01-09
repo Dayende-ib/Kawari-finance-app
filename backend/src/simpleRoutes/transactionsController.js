@@ -1,9 +1,14 @@
+const mongoose = require('mongoose');
 const Transaction = require('../models/Transaction');
 const { isValidObjectId } = require('../utils/validation');
 
 const getCompanyId = (req) => req.user?.companyId || req.user?.id;
 const buildUserFilter = (req) =>
   req.user?.role === 'admin' ? { companyId: getCompanyId(req) } : { userId: req.user.id };
+const buildUserMatch = (req) =>
+  req.user?.role === 'admin'
+    ? { companyId: new mongoose.Types.ObjectId(getCompanyId(req)) }
+    : { userId: new mongoose.Types.ObjectId(req.user.id) };
 
 exports.list = async (req, res, next) => {
   try {
@@ -91,5 +96,64 @@ exports.update = async (req, res, next) => {
     ).lean();
     if (!row) return res.status(404).json({ message: 'Transaction not found' });
     res.json(row);
+  } catch (err) { next(err); }
+};
+
+exports.monthly = async (req, res, next) => {
+  try {
+    const monthsParam = Number(req.query.months);
+    const monthsCount = Number.isFinite(monthsParam) && monthsParam > 0
+      ? Math.min(Math.floor(monthsParam), 24)
+      : 6;
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - (monthsCount - 1), 1);
+    const match = { ...buildUserMatch(req), date: { $gte: start, $lte: now } };
+
+    const rows = await Transaction.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$date' },
+            month: { $month: '$date' },
+            type: '$type',
+          },
+          total: { $sum: '$amount' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          year: '$_id.year',
+          month: '$_id.month',
+          type: '$_id.type',
+          total: 1,
+        },
+      },
+    ]);
+
+    const monthKey = (date) =>
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+    const formatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
+    const months = Array.from({ length: monthsCount }, (_, index) => {
+      const date = new Date(start.getFullYear(), start.getMonth() + index, 1);
+      return { key: monthKey(date), label: formatter.format(date) };
+    });
+
+    const indexByKey = new Map(months.map((month, index) => [month.key, index]));
+    const monthlySales = months.map((month) => ({ month: month.label, total: 0 }));
+    const monthlyExpenses = months.map((month) => ({ month: month.label, total: 0 }));
+
+    for (const row of rows) {
+      const key = `${row.year}-${String(row.month).padStart(2, '0')}`;
+      const index = indexByKey.get(key);
+      if (index === undefined) continue;
+      if (row.type === 'sale') monthlySales[index].total = row.total || 0;
+      if (row.type === 'expense') monthlyExpenses[index].total = row.total || 0;
+    }
+
+    res.json({ monthlySales, monthlyExpenses });
   } catch (err) { next(err); }
 };

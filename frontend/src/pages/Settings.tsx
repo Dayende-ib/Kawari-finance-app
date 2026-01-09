@@ -16,17 +16,17 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Parametres</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
         <p className="text-sm text-gray-600">Profil: {roleLabel}</p>
       </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Parametres communs</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Paramètres communs</h2>
         <div className="grid gap-4 lg:grid-cols-2">
           <Card className="p-6 space-y-4">
             <div>
               <h3 className="text-base font-semibold text-gray-900">Compte utilisateur</h3>
-              <p className="text-sm text-gray-600">Gerer votre profil et vos acces.</p>
+              <p className="text-sm text-gray-600">Gérer votre profil et vos accès.</p>
             </div>
             <div className="grid gap-3">
               <label className="text-sm text-gray-600">
@@ -58,7 +58,7 @@ export default function Settings() {
                   Changer le mot de passe
                 </Button>
                 <Button variant="secondary" type="button" onClick={handleLogout}>
-                  Deconnexion
+                  Déconnexion
                 </Button>
               </div>
             </div>
@@ -67,7 +67,7 @@ export default function Settings() {
           <Card className="p-6 space-y-4">
             <div>
               <h3 className="text-base font-semibold text-gray-900">Notifications</h3>
-              <p className="text-sm text-gray-600">Controle rapide des alertes.</p>
+              <p className="text-sm text-gray-600">Contrôle rapide des alertes.</p>
             </div>
             <div className="space-y-3 text-sm text-gray-600">
               <label className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export default function Settings() {
 
           <Card className="p-6 space-y-4 lg:col-span-2">
             <div>
-              <h3 className="text-base font-semibold text-gray-900">Preferences d'affichage</h3>
+              <h3 className="text-base font-semibold text-gray-900">Préférences d'affichage</h3>
               <p className="text-sm text-gray-600">Personnalisez votre interface.</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-3 text-sm text-gray-600">
@@ -112,23 +112,23 @@ export default function Settings() {
 
       {isSeller && (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Parametres vendeur</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Paramètres vendeur</h2>
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="p-6 space-y-4">
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Preferences vendeur</h3>
-                <p className="text-sm text-gray-600">Simplicite maximale pour vos ventes.</p>
+                <h3 className="text-base font-semibold text-gray-900">Préférences vendeur</h3>
+                <p className="text-sm text-gray-600">Simplicité maximale pour vos ventes.</p>
               </div>
               <div className="grid gap-3 text-sm text-gray-600">
                 <label>
-                  Methode de paiement par defaut
+                  Méthode de paiement par défaut
                   <select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500">
                     <option>Cash</option>
                     <option>Mobile Money</option>
                   </select>
                 </label>
                 <label>
-                  Montant suggere
+                  Montant suggéré
                   <input
                     type="number"
                     className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -136,7 +136,7 @@ export default function Settings() {
                   />
                 </label>
                 <label>
-                  Client par defaut (optionnel)
+                  Client par défaut (optionnel)
                   <input
                     className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="Ex: Client rapide"
@@ -167,12 +167,12 @@ export default function Settings() {
 
       {isAdmin && (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Parametres admin</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Paramètres admin</h2>
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="p-6 space-y-4">
               <div>
                 <h3 className="text-base font-semibold text-gray-900">Entreprise</h3>
-                <p className="text-sm text-gray-600">Identite et contact de l'entreprise.</p>
+                <p className="text-sm text-gray-600">Identité et contact de l'entreprise.</p>
               </div>
               <div className="grid gap-3 text-sm text-gray-600">
                 <label>
@@ -196,7 +196,7 @@ export default function Settings() {
                 </label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label>
-                    Telephone
+                    Téléphone
                     <input
                       className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
                       placeholder="+225 00 00 00 00"
@@ -216,15 +216,15 @@ export default function Settings() {
             <Card className="p-6 space-y-4">
               <div>
                 <h3 className="text-base font-semibold text-gray-900">Gestion des vendeurs</h3>
-                <p className="text-sm text-gray-600">Controle des acces vendeurs.</p>
+                <p className="text-sm text-gray-600">Contrôle des accès vendeurs.</p>
               </div>
               <div className="space-y-3 text-sm text-gray-600">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
-                  Activer / desactiver un vendeur
+                  Activer / désactiver un vendeur
                 </label>
                 <label>
-                  Limiter acces
+                  Limiter accès
                   <select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500">
                     <option>Complet</option>
                     <option>Stats seulement</option>
@@ -232,15 +232,15 @@ export default function Settings() {
                   </select>
                 </label>
                 <Button variant="ghost" type="button" className="w-fit">
-                  Reinitialiser mot de passe
+                  Réinitialiser mot de passe
                 </Button>
               </div>
             </Card>
 
             <Card className="p-6 space-y-4">
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Regles business</h3>
-                <p className="text-sm text-gray-600">Modules disponibles et categories.</p>
+                <h3 className="text-base font-semibold text-gray-900">Règles business</h3>
+                <p className="text-sm text-gray-600">Modules disponibles et catégories.</p>
               </div>
               <div className="space-y-3 text-sm text-gray-600">
                 <label className="flex items-center gap-2">
@@ -249,10 +249,10 @@ export default function Settings() {
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
-                  Activer depenses
+                  Activer dépenses
                 </label>
                 <label>
-                  Categories de transactions
+                  Catégories de transactions
                   <input
                     className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="Ex: Services, Loyer, Marketing"
@@ -263,16 +263,16 @@ export default function Settings() {
 
             <Card className="p-6 space-y-4">
               <div>
-                <h3 className="text-base font-semibold text-gray-900">Securite</h3>
-                <p className="text-sm text-gray-600">Parametres de session et historiques.</p>
+                <h3 className="text-base font-semibold text-gray-900">Sécurité</h3>
+                <p className="text-sm text-gray-600">Paramètres de session et historiques.</p>
               </div>
               <div className="space-y-3 text-sm text-gray-600">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="h-4 w-4" />
-                  Forcer deconnexion vendeurs
+                  Forcer déconnexion vendeurs
                 </label>
                 <label>
-                  Duree de session (minutes)
+                  Durée de session (minutes)
                   <input
                     type="number"
                     className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -291,7 +291,7 @@ export default function Settings() {
 
       {isSuperAdmin && (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Parametres super admin</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Paramètres super admin</h2>
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="p-6 space-y-4">
               <div>
@@ -301,7 +301,7 @@ export default function Settings() {
               <div className="space-y-3 text-sm text-gray-600">
                 <div className="rounded-lg border border-gray-300 bg-white p-3">
                   <p className="font-medium text-gray-900">Liste des entreprises</p>
-                  <p className="text-xs text-gray-500">Apercu rapide des comptes.</p>
+                  <p className="text-xs text-gray-500">Aperçu rapide des comptes.</p>
                 </div>
                 <Button variant="ghost" type="button" className="w-fit">
                   Activer / suspendre une entreprise
@@ -315,7 +315,7 @@ export default function Settings() {
             <Card className="p-6 space-y-4">
               <div>
                 <h3 className="text-base font-semibold text-gray-900">Monitoring</h3>
-                <p className="text-sm text-gray-600">Visibilite globale de la plateforme.</p>
+                <p className="text-sm text-gray-600">Visibilité globale de la plateforme.</p>
               </div>
               <div className="grid gap-3 text-sm text-gray-600">
                 <div className="rounded-lg border border-gray-300 bg-white p-3">
@@ -327,8 +327,8 @@ export default function Settings() {
                   <p className="text-lg font-semibold text-gray-900">--</p>
                 </div>
                 <div className="rounded-lg border border-gray-300 bg-white p-3">
-                  <p className="text-xs text-gray-500">Logs systeme</p>
-                  <p className="text-sm text-gray-600">Aucun log charge.</p>
+                  <p className="text-xs text-gray-500">Logs système</p>
+                  <p className="text-sm text-gray-600">Aucun log chargé.</p>
                 </div>
               </div>
             </Card>

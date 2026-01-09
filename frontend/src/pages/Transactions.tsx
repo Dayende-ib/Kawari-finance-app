@@ -62,7 +62,7 @@ export default function Transactions() {
     mutationFn: async (payload: any) => await api.post('/transactions', payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      notify('Transaction enregistree');
+      notify('Transaction enregistrée');
       handleCloseModal();
     },
     onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la creation', 'error'),
@@ -72,7 +72,7 @@ export default function Transactions() {
     mutationFn: async (payload: { id: string; data: any }) => await api.put(`/transactions/${payload.id}`, payload.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      notify('Transaction mise a jour');
+      notify('Transaction mise à jour');
       handleCloseModal();
     },
     onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la mise a jour', 'error'),
@@ -82,7 +82,7 @@ export default function Transactions() {
     mutationFn: async (id: string) => await api.delete(`/transactions/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      notify('Transaction supprimee');
+      notify('Transaction supprimée');
     },
     onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la suppression', 'error'),
   });
@@ -91,7 +91,7 @@ export default function Transactions() {
     mutationFn: async (payload: any) => await api.post('/invoices', payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      notify('Facture creee');
+      notify('Facture créée');
     },
     onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la creation de facture', 'error'),
   });
@@ -247,7 +247,7 @@ export default function Transactions() {
               <button
                 className="p-1 hover:bg-blue-100 rounded"
                 onClick={handleCreateInvoice}
-                title="Creer une facture"
+                title="Créer une facture"
                 disabled={createInvoiceMutation.isPending}
               >
                 <FileText className="w-4 h-4 text-blue-600" />
@@ -307,7 +307,7 @@ export default function Transactions() {
           </button>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 w-full sm:w-auto" onClick={() => notify('Filtres avances a venir')}>
+          <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 w-full sm:w-auto" onClick={() => notify('Filtres avancés à venir')}>
             <Filter className="w-5 h-5 text-gray-600" />
           </button>
           <button
@@ -356,7 +356,7 @@ export default function Transactions() {
               <TransactionItem
                 key={transaction._id || transaction.id}
                 transaction={transaction}
-                displayName={`${transaction.type === 'expense' ? 'depense' : 'vente'} ${String(transaction._id || transaction.id || '').trim() || 'N/A'}`}
+                displayName={`${transaction.type === 'expense' ? 'dépense' : 'vente'} ${String(transaction._id || transaction.id || '').trim() || 'N/A'}`}
               />
             ))
           ) : (
@@ -407,13 +407,13 @@ export default function Transactions() {
                 required
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Categorie</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
                 <select
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
                   value={formData.category || ''}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
-                  <option value="">Selectionner</option>
+                  <option value="">Sélectionner</option>
                   {transactionType === 'sale' ? (
                     <>
                       <option>Vente de produits</option>
@@ -449,12 +449,12 @@ export default function Transactions() {
                   value={formData.paymentMethod}
                   onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                 >
-                  <option value="">Selectionner</option>
-                  <option value="Especes">Especes</option>
+                  <option value="">Sélectionner</option>
+                  <option value="Espèces">Espèces</option>
                   <option value="Mobile Money">Mobile Money</option>
                   <option value="Carte bancaire">Carte bancaire</option>
                   <option value="Virement">Virement</option>
-                  <option value="Cheque">Cheque</option>
+                  <option value="Chèque">Chèque</option>
                   <option value="Autre">Autre</option>
                 </select>
               </div>
@@ -473,7 +473,7 @@ export default function Transactions() {
                   Annuler
                 </Button>
                 <Button type="submit" loading={createMutation.isPending || updateMutation.isPending} className="flex-1">
-                  {editing ? 'Mettre a jour' : 'Enregistrer'}
+                  {editing ? 'Mettre à jour' : 'Enregistrer'}
                 </Button>
               </div>
             </form>

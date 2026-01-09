@@ -147,7 +147,7 @@ function SellerDashboard() {
           <span className={`text-xs px-2 py-1 rounded-full ${
             transaction?.type === 'sale' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
           }`}>
-            {transaction?.type === 'sale' ? 'Vente' : transaction?.type === 'expense' ? 'D?pense' : 'Inconnu'}</span>
+            {transaction?.type === 'sale' ? 'Vente' : transaction?.type === 'expense' ? 'Dépense' : 'Inconnu'}</span>
         </div>
       </div>
     );
@@ -251,7 +251,7 @@ function SellerDashboard() {
         {/* Recent Transactions */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Transactions r?centes</h3>
+            <h3 className="text-lg font-bold text-gray-900">Transactions récentes</h3>
             <div className="flex flex-wrap items-center gap-2">
               <button
                 className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 font-medium"
@@ -263,7 +263,7 @@ function SellerDashboard() {
                 className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 font-medium"
                 onClick={() => navigate('/transactions', { state: { openModal: 'expense' } })}
               >
-                Ajouter depense
+                Ajouter dépense
               </button>
               <button
                 className="text-sm text-green-600 hover:text-green-700 font-medium"

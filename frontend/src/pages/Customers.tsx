@@ -47,11 +47,11 @@ export default function Customers() {
     mutationFn: async (payload: { name: string; email?: string; phone?: string }) => await api.post('/customers', payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
-      notify('Client cr??');
+      notify('Client créé');
       setFormData({ name: '', email: '', phone: '' });
       setShowModal(false);
     },
-    onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la cr?ation', 'error'),
+    onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la création', 'error'),
   });
 
   const updateMutation = useMutation({
@@ -59,12 +59,12 @@ export default function Customers() {
       await api.put(`/customers/${payload.id}`, payload.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
-      notify('Client mis ? jour');
+      notify('Client mis à jour');
       setFormData({ name: '', email: '', phone: '' });
       setSelectedCustomer(null);
       setShowModal(false);
     },
-    onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la mise ? jour', 'error'),
+    onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la mise à jour', 'error'),
   });
 
   const formatCurrency = (amount: number) => {
@@ -248,7 +248,7 @@ export default function Customers() {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
                         <Phone className="w-4 h-4" />
-                        {customer.phone || 'Non renseign?'}
+                        {customer.phone || 'Non renseigné'}
                       </div>
                     </div>
                     <button className="p-2 hover:bg-gray-100 rounded-lg self-start" onClick={() => handleEdit(customer)}>
@@ -257,7 +257,7 @@ export default function Customers() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
                     <div>
-                      <p className="text-xs text-gray-600 mb-1">Total d?pens?</p>
+                      <p className="text-xs text-gray-600 mb-1">Total dépenses</p>
                       <p className="font-semibold text-green-600">{formatCurrency(0)}</p>
                     </div>
                     <div>
@@ -273,7 +273,7 @@ export default function Customers() {
               );
             })
           ) : (
-            <div className="md:col-span-2 p-6 text-center text-gray-500">Aucun client trouv?</div>
+            <div className="md:col-span-2 p-6 text-center text-gray-500">Aucun client trouvé</div>
           )}
         </div>
       </div>
@@ -302,7 +302,7 @@ export default function Customers() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
               <Input
-                label="T?l?phone (optionnel)"
+                label="Téléphone (optionnel)"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
@@ -311,7 +311,7 @@ export default function Customers() {
                   Annuler
                 </Button>
                 <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
-                  {selectedCustomer ? 'Mettre ? jour' : 'Cr?er'}
+                  {selectedCustomer ? 'Mettre à jour' : 'Créer'}
                 </Button>
               </div>
             </form>
