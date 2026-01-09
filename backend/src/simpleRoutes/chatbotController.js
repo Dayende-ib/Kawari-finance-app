@@ -58,16 +58,16 @@ const buildResponse = (message, metrics) => {
     return `Vos ventes totales sont de ${formatCurrency(metrics.totalSales)}.`;
   }
   if (text.includes('depense') || text.includes('expense')) {
-    return `Vos depenses totales sont de ${formatCurrency(metrics.totalExpenses)}.`;
+    return `Vos dépenses totales sont de ${formatCurrency(metrics.totalExpenses)}.`;
   }
   if (text.includes('benefice') || text.includes('profit') || text.includes('marge')) {
-    return `Votre benefice est de ${formatCurrency(profit)}.`;
+    return `Votre bénéfice est de ${formatCurrency(profit)}.`;
   }
   if (text.includes('facture') || text.includes('impaye')) {
-    return `Vous avez ${metrics.unpaidInvoices} facture(s) impayee(s).`;
+    return `Vous avez ${metrics.unpaidInvoices} facture(s) impayées.`;
   }
 
-  return "Je peux vous aider avec vos ventes, depenses, benefice ou factures impayees.";
+  return "Je peux vous aider avec vos ventes, dépenses, bénéfice ou factures impayées.";
 };
 
 exports.getConversation = async (req, res, next) => {

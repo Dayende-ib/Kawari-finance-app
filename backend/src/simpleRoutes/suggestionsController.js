@@ -75,7 +75,7 @@ const buildSuggestions = (metrics) => {
         id++,
         'info',
         'Aucune transaction',
-        'Commencez par enregistrer une vente ou une depense.',
+        'Commencez par enregistrer une vente ou une dépense.',
         'low',
         'Zap'
       )
@@ -85,8 +85,8 @@ const buildSuggestions = (metrics) => {
       buildSuggestion(
         id++,
         'warning',
-        'Depenses superieures aux ventes',
-        'Surveillez vos depenses pour proteger la marge.',
+        'Dépenses supérieures aux ventes',
+        'Surveillez vos dépenses pour protéger la marge.',
         'high',
         'TrendingDown'
       )
@@ -97,7 +97,7 @@ const buildSuggestions = (metrics) => {
         id++,
         'success',
         'Ventes en progression',
-        'Continuez vos efforts, vos ventes restent au-dessus des depenses.',
+        'Continuez vos efforts, vos ventes restent au-dessus des dépenses.',
         'medium',
         'TrendingUp'
       )
@@ -109,7 +109,7 @@ const buildSuggestions = (metrics) => {
       buildSuggestion(
         id++,
         'info',
-        'Activite recente faible',
+        'Activité récente faible',
         'Aucune transaction cette semaine. Pensez a relancer vos clients.',
         'medium',
         'BarChart3'

@@ -75,7 +75,7 @@ export default function Transactions() {
       notify('Transaction mise à jour');
       handleCloseModal();
     },
-    onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la mise a jour', 'error'),
+    onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la mise à jour', 'error'),
   });
 
   const deleteMutation = useMutation({
@@ -93,7 +93,7 @@ export default function Transactions() {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       notify('Facture créée');
     },
-    onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la creation de facture', 'error'),
+    onError: (err: any) => notify(err?.data?.message || 'Erreur lors de la création de facture', 'error'),
   });
 
   const formatCurrency = (amount: number) => {
@@ -303,7 +303,7 @@ export default function Transactions() {
             }`}
             onClick={() => setActiveFilter('expense')}
           >
-            Depenses
+            Dépenses
           </button>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -322,7 +322,7 @@ export default function Transactions() {
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
-            Nouvelle Depense
+            Nouvelle Dépense
           </button>
         </div>
       </div>
@@ -360,7 +360,7 @@ export default function Transactions() {
               />
             ))
           ) : (
-            <div className="p-6 text-center text-gray-500">Aucune transaction trouvee</div>
+            <div className="p-6 text-center text-gray-500">Aucune transaction trouvée</div>
           )}
         </div>
       </div>
@@ -371,7 +371,7 @@ export default function Transactions() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
-                  {editing ? 'Modifier la transaction' : transactionType === 'sale' ? 'Nouvelle Vente' : 'Nouvelle Depense'}
+                  {editing ? 'Modifier la transaction' : transactionType === 'sale' ? 'Nouvelle Vente' : 'Nouvelle Dépense'}
                 </h3>
                 <p className="text-xs text-gray-500">Ajout vocal: non fonctionnel pour le moment.</p>
               </div>
@@ -424,7 +424,7 @@ export default function Transactions() {
                   ) : (
                     <>
                       <option>Fournitures</option>
-                      <option>Electricite</option>
+                      <option>Électricité</option>
                       <option>Loyer</option>
                       <option>Salaires</option>
                       <option>Marketing</option>
@@ -463,7 +463,7 @@ export default function Transactions() {
                 <textarea
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
                   rows={3}
-                  placeholder="Details supplementaires..."
+                  placeholder="Détails supplémentaires..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />

@@ -300,8 +300,8 @@ Servez `frontend/dist/` avec un serveur web statique (Nginx, Vercel, etc.).
 
 1. Copiez `env.example` vers `.env` et ajustez les variables:
    - `NODE_ENV=production`
-   - `FRONTEND_URL=https://votre-domaine-frontend` (liste possible: valeurs separees par des virgules)
-   - `COOKIE_SAMESITE=none` si front et back sont sur des domaines differents
+   - `FRONTEND_URL=https://votre-domaine-frontend` (liste possible: valeurs séparées par des virgules)
+   - `COOKIE_SAMESITE=none` si front et back sont sur des domaines différents
    - `COOKIE_SECURE=true` si HTTPS est actif (recommande en production)
 2. Installez et lancez:
    ```powershell
@@ -312,7 +312,7 @@ Servez `frontend/dist/` avec un serveur web statique (Nginx, Vercel, etc.).
 
 ### Frontend
 
-1. Definissez l'API:
+1. Définissez l'API:
    - `VITE_API_BASE_URL=https://votre-domaine-backend/api`
 2. Build et previsualisation locale:
    ```powershell
